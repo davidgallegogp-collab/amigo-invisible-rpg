@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,user-scalable=no"
+    />
+    <title>La Taberna del Amigo Invisible v0.7.1</title>
+    <link rel="stylesheet" href="css/styles.css?v=0.7.1" />
+  </head>
+  <body>
+    <div id="overlay">
+      <div id="panel">
+        <h2>🍺 La Taberna del Amigo Invisible</h2>
+        <p>Elige a tu aventurero</p>
+        <select id="pick"></select>
+        <button id="start">⚔ Entrar en la taberna</button>
+        <small>Versión 0.7.1 · Reorganización técnica</small>
+      </div>
+    </div>
+    <h1>🍺 La Taberna del Amigo Invisible <small>v0.7.1</small></h1>
+    <div id="info">
+      <div id="message">
+        Explora la taberna, habla con tus amigos y recluta dos compañeros.
+      </div>
+      <div id="team"></div>
+    </div>
+    <canvas id="game" width="896" height="608"> </canvas>
+    <div id="pad">
+      <button data-dir="left">◀</button>
+      <div class="stack">
+        <button data-dir="up">▲</button>
+        <button data-dir="down">▼</button>
+      </div>
+      <button data-dir="right">▶</button>
+      <button id="talk">💬 Hablar</button>
+    </div>
+    <small
+      >WASD o flechas · E para hablar · Mueve el dedo sobre el mapa o usa los
+      controles</small
+    >
+    <div id="battle">
+      <div id="battleCard">
+        <h2>⚔ La mazmorra del amigo invisible</h2>
+        <canvas id="battleCanvas" width="768" height="355"> </canvas>
+        <div id="battleStatus"></div>
+        <div id="battleLog" aria-live="polite"></div>
+        <div id="battleActions"></div>
+      </div>
+    </div>
+    <div id="modal">
+      <div id="dialogbox">
+        <h2 id="npcTitle"></h2>
+        <p id="npcLine"></p>
+        <p id="npcDetail"></p>
+        <div id="actions"></div>
+      </div>
+    </div>
+    <script defer src="js/personajes.js?v=0.7.1"></script>
+    <script defer src="js/estado.js?v=0.7.1"></script>
+    <script defer src="js/enemigos.js?v=0.7.1"></script>
+    <script defer src="js/recursos.js?v=0.7.1"></script>
+    <script defer src="js/taberna.js?v=0.7.1"></script>
+    <script defer src="js/combate.js?v=0.7.1"></script>
+    <script defer src="js/main.js?v=0.7.1"></script>
+  </body>
+</html>
