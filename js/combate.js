@@ -102,13 +102,13 @@ function battleBackdrop(g) {
     );
   }
 }
-function battleHero(g, p, i) {
+function battleHero(g, p, i, now = performance.now()) {
   const x = 489 + i * 96,
     y = 205 + (i % 2) * 19,
-    bob = p.hp > 0 ? Math.round(Math.sin(visualFrame * 0.065 + i) * 2) : 0;
+    animation = HeroAnimations.sample(p, now);
   g.save();
-  g.translate(x, y + bob);
-  if (p.hp <= 0) g.globalAlpha = 0.45;
+  g.translate(x + animation.x, y + animation.y);
+  g.globalAlpha = animation.alpha;
   const art = heroArt[p.spriteKey];
   if (art && art.complete && art.naturalWidth) {
     // Lienzos uniformes: misma escala, siluetas distintas. Pies en el suelo
@@ -117,6 +117,10 @@ function battleHero(g, p, i) {
     g.imageSmoothingEnabled = false;
     if (heroSpriteCatalog[p.name]?.flip) g.scale(-1, 1);
     g.drawImage(art, -width / 2, 37 - height, width, height);
+    if (animation.flash > 0) {
+      g.globalAlpha *= animation.flash;
+      g.drawImage(HeroAnimations.flashImage(art, animation.color), -width / 2, 37 - height, width, height);
+    }
   } else {
     // Reserva geométrica original solo si falla el PNG; carga informa del fallo.
     battleHeroFallback(g, p);
@@ -126,7 +130,7 @@ function battleHero(g, p, i) {
   g.font = "bold 12px monospace";
   g.fillStyle = "#fff1cf";
   g.fillText(p.name, x, y - 76);
-  if (i === activeTurn && !combatFinished) {
+  if (p.hp > 0 && i === activeTurn && !combatFinished) {
     g.fillStyle = "#ffe17e";
     g.fillText("▼", x, y - 93);
   }
@@ -199,7 +203,7 @@ function battleDraw(now = performance.now()) {
       g.fillText("★ FASE II", x, 83);
     }
   });
-  combatants.forEach((p, i) => battleHero(g, p, i));
+  combatants.forEach((p, i) => battleHero(g, p, i, now));
   if (visualPulse > 0) {
     g.fillStyle = `rgba(255,220,147,${visualPulse / 42})`;
     g.fillRect(0, 0, 768, 355);
@@ -277,6 +281,7 @@ function startBattle() {
 }
 function startEncounter() {
   EnemyAnimations.reset();
+  HeroAnimations.reset();
   combatFinished = false;
   round = 1;
   activeTurn = 0;
@@ -340,6 +345,7 @@ function finishBattle(won) {
 }
 function leaveDungeon() {
   EnemyAnimations.reset();
+  HeroAnimations.reset();
   battleActive = false;
   $("battle").style.display = "none";
   player = { x: 680, y: 545 };
@@ -398,7 +404,9 @@ function actionDone(message) {
 }
 function hitHero(target, dmg) {
   const real = target.guard ? Math.ceil(dmg / 2) : dmg;
+  const previousHp = target.hp;
   target.hp = Math.max(0, target.hp - real);
+  if (target.hp < previousHp) HeroAnimations.play(target, target.hp === 0 ? "defeat" : "hurt");
   return real;
 }
 function enemyTurn() {
@@ -514,6 +522,7 @@ function showTurn(keepLog = false) {
   if (!keepLog) battleLog("Turno de " + p.name + ".");
   battleButton("⚔ Atacar", () =>
     pickEnemy((e) => {
+      HeroAnimations.play(p, "attack");
       const dmg =
         11 + Math.floor(Math.random() * 9) + (p.cls === "Bárbaro" ? 5 : 0);
       const extra = damageEnemy(e, dmg);
@@ -529,13 +538,17 @@ function showTurn(keepLog = false) {
     }
     if (p.cls === "Clérigo") {
       p.mp -= 8;
+      HeroAnimations.play(p, "skill");
       combatants.forEach((a) => {
+        const previousHp = a.hp;
         if (a.hp > 0) a.hp = Math.min(a.maxhp, a.hp + 24);
+        if (a.hp > previousHp) HeroAnimations.play(a, "heal");
       });
       actionDone(p.name + " usa «" + p.special + "» y cura 24 PV al grupo.");
     } else
       pickEnemy((e) => {
         p.mp -= 8;
+        HeroAnimations.play(p, "skill");
         const dmg =
           (p.cls === "Mago" ? 30 : 26) + Math.floor(Math.random() * 9);
         const extra = damageEnemy(e, dmg);
@@ -554,6 +567,7 @@ function showTurn(keepLog = false) {
   });
   battleButton("🛡 Defender", () => {
     p.guard = true;
+    HeroAnimations.play(p, "guard");
     actionDone(p.name + " se protege.");
   });
   battleButton("🧪 Poción (1)", () => {
