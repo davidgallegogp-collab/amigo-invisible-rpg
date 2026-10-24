@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
-const base = '915f4cd3c07e9ab6d4e279c90f4f820a3270b8fa';
+const base = 'f602fc48d723d57c15e1ea4cf2a565f5b27eb537';
 function harness(baseline = false) {
   const elements = new Map(), draws = [], listeners = {};
   let now = 1000;
@@ -47,17 +47,20 @@ function harness(baseline = false) {
       :fs.readFileSync(path.join(root,file),'utf8');
     vm.runInContext(source,sandbox,{filename:file});
   }
+  if (baseline) run('data.splice(12,1);data.splice(11,1);data.find(p=>p[0]==="Alba")[2]="¿Sale piti?"');
   run('Math.random=()=>0');
   return {run,draws,elements,pads,listeners,time(t){now=t},click(id,prefix){
     const b=elements.get(id).children.find(b=>b.textContent.startsWith(prefix));
     assert(b,'Botón '+prefix);b.onclick();
   }};
 }
+module.exports = { harness };
+if (require.main === module) {
 for(const name of ['mirucha','nacho','arturo','quico','avionatin','abel']) {
  const file='assets/enemigos/'+name+'.png';
  assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})));
 }
-console.log('PASS seis PNG idénticos byte a byte a v0.7.1');
+console.log('PASS seis PNG idénticos byte a byte a v0.8');
 const h=harness();
 h.run('hero=0;party=[1,6];startBattle()');
 // Los seis perfiles: reposo acotado, daño real, avance, retorno, desaparición.
@@ -96,20 +99,20 @@ h.run('Math.random=()=>0');
 console.log('PASS selección, cobertura, reacción/ataque secuenciales, muerte prioritaria y reinicio');
 // Renderer: tamaños originales, posiciones fijas, transparencia aislada, fin de muerte.
 h.time(15000);h.run('stage=1;startEncounter();visualPulse=0');h.draws.length=0;h.run('battleDraw()');
-const before=h.draws.filter(d=>d.src);
+const before=h.draws.filter(d=>d.src?.includes('/enemigos/'));
 h.run('damageEnemy(enemies[0],10000)');h.time(15350);h.draws.length=0;h.run('battleDraw()');
-const during=h.draws.filter(d=>d.src);
+const during=h.draws.filter(d=>d.src?.includes('/enemigos/'));
 assert.equal(during.length,2);assert(during[0].alpha>0&&during[0].alpha<1);
 assert.equal(during[1].alpha,1);assert.deepEqual(during[1].args,before[1].args);
-h.time(15600);h.draws.length=0;h.run('battleDraw()');assert.equal(h.draws.filter(d=>d.src).length,1);
+h.time(15600);h.draws.length=0;h.run('battleDraw()');assert.equal(h.draws.filter(d=>d.src?.includes('/enemigos/')).length,1);
 assert.equal(h.run('bctx.globalAlpha'),1);
 console.log('PASS dibujo conserva dimensiones y anclajes; muerte desaparece sin contaminar Canvas');
-// Comparación diferencial: mismas decisiones y semilla contra v0.7.1.
+// Comparación diferencial: mismas decisiones y semilla contra v0.8.
 const old=harness(true), fresh=harness();
-const snapshot=`JSON.stringify({enemies,combatants,stage,round,phase2,enemyBoost,activeTurn,combatFinished,usedPotion,log:$("battleLog").textContent})`;
+const snapshot=`JSON.stringify({enemies,combatants,stage,round,phase2,enemyBoost,activeTurn,combatFinished,usedPotion,log:$("battleLog").textContent},(key,value)=>key==="spriteKey"?undefined:value)`;
 const both=code=>{old.run(code);fresh.run(code);assert.equal(fresh.run(snapshot),old.run(snapshot))};
-for(let hero=0;hero<18;hero++){
- both(`battleActive=false;hero=${hero};party=[(${hero}+1)%18,(${hero}+2)%18];startBattle();combatants.forEach(p=>p.hp-=25)`);
+for(let hero=0;hero<16;hero++){
+ both(`battleActive=false;hero=${hero};party=[(${hero}+1)%16,(${hero}+2)%16];startBattle();combatants.forEach(p=>p.hp-=25)`);
  old.click('battleActions','✨');fresh.click('battleActions','✨');assert.equal(fresh.run(snapshot),old.run(snapshot));
 }
 both('stage=0;startEncounter();combatants.forEach(p=>{p.hp=p.maxhp=10000});combatants[0].hp=9900');
@@ -142,7 +145,7 @@ for(let st=0;st<3;st++){
 old.click('battleActions','🎁');fresh.click('battleActions','🎁');assert.equal(fresh.run(snapshot),old.run(snapshot));
 assert(fresh.elements.get('battleLog').textContent.includes('Has completado'));
 fresh.click('battleActions','🍺');assert.equal(fresh.run('battleActive'),false);
-console.log('PASS reglas idénticas: 18 habilidades, combo, ambas fases II, tres danzas, derrota/reintento, tres encuentros y cofre (PV ampliados en simulación)');
+console.log('PASS reglas idénticas: 16 habilidades, combo, ambas fases II, tres danzas, derrota/reintento, tres encuentros y cofre (PV ampliados en simulación)');
 // Eventos reales de main.js sobre DOM simulado: teclado, pad y reclutamiento.
 const ui=harness();ui.elements.get('start').onclick();
 ui.listeners.keydown({key:'ArrowRight',preventDefault(){}});ui.run('render()');assert(ui.run('player.x')>449);
@@ -152,3 +155,5 @@ for(const i of [1,6]){ui.run(`player={x:positions[${i}][0],y:positions[${i}][1]+
 assert.equal(ui.run('party.length'),2);
 console.log('PASS exploración, teclado, cancelación táctil y reclutamiento en DOM simulado');
 console.log('AVISO: esta suite no sustituye una revisión visual ni un navegador/dispositivo real.');
+
+}

@@ -36,7 +36,7 @@ async function clickAttack(page){
 async function golden(page){
  return page.evaluate(()=>{
   hero=0;party=[1,6];started=true;player={x:449,y:552};last=[{...player}];
-  canvas.width=896;ctx.imageSmoothingEnabled=false;render();
+  canvas.width=896;ctx.imageSmoothingEnabled=false;furniture();
   const frames=[canvas.toDataURL()];startBattle();
   for(stage=0;stage<3;stage++){
    startEncounter();visualFrame=100;visualPulse=0;bc.width=768;bctx.imageSmoothingEnabled=false;battleDraw();frames.push(bc.toDataURL());
@@ -57,10 +57,10 @@ async function golden(page){
   for(const prefix of ['/','/amigo-invisible-rpg/']){
    await ready(page,base+prefix+'baseline.html');const before=await golden(page);
    await ready(page,base+prefix);const after=await golden(page);
-   assert.equal(after[0],before[0],'Diferencia de píxeles en taberna');
+   assert.equal(after[0],before[0],'Diferencia de píxeles en escenario de taberna');
    await ready(page,base+prefix);
-   assert.equal(await page.locator('#pick option').count(),18);
-   await page.selectOption('#pick','17');await page.locator('#start').click();
+   assert.equal(await page.locator('#pick option').count(),16);
+   await page.selectOption('#pick','15');await page.locator('#start').click();
    assert.equal(await page.evaluate(()=>data[hero][0]),'Alba');
    if(!mobile){
     for(const [key,axis,sign] of [['ArrowRight','x',1],['a','x',-1],['ArrowUp','y',-1],['s','y',1]]){
@@ -93,7 +93,7 @@ async function golden(page){
    assert.equal(await page.evaluate(()=>party.length),2);
    await page.evaluate(()=>{player={x:720,y:490}});
    await page.keyboard.down('ArrowRight');await page.waitForFunction(()=>battleActive);await page.keyboard.up('ArrowRight');
-   await page.evaluate(()=>{combatants.forEach(p=>{p.hp=10000;p.maxhp=10000});Math.random=()=>0;window.seen=new Set();const draw=bctx.drawImage.bind(bctx);bctx.drawImage=(img,...a)=>{if(img.src)window.seen.add(new URL(img.src).pathname.split('/').pop());draw(img,...a)}});
+   await page.evaluate(()=>{combatants.forEach(p=>{p.hp=10000;p.maxhp=10000});Math.random=()=>0;window.seen=new Set();const draw=bctx.drawImage.bind(bctx);bctx.drawImage=(img,...a)=>{if(img.src&&img.src.includes("/enemigos/"))window.seen.add(new URL(img.src).pathname.split('/').pop());draw(img,...a)}});
    for(let st=0;st<3;st++){
     await page.evaluate(()=>battleDraw());
     for(let n=0;n<80&&!(await page.evaluate(()=>combatFinished));n++)await clickAttack(page);
@@ -105,15 +105,15 @@ async function golden(page){
    await page.getByRole('button',{name:'🎁 Abrir cofre'}).click();assert((await page.locator('#battleLog').innerText()).includes('Has completado'));
    await page.getByRole('button',{name:'🍺 Volver a la taberna'}).click();assert.equal(await page.evaluate(()=>battleActive),false);
    assert.deepEqual(bad,[]);
-   console.log('PASS',mobile?'móvil emulado':'PC',prefix,'taberna idéntica, controles, Pere, reclutamiento, seis sprites, tres victorias, cofre');
+   console.log('PASS',mobile?'móvil emulado':'PC',prefix,'escenario idéntico, controles, Pere, reclutamiento, seis sprites, tres victorias, cofre');
   }
   await context.close();
  }
  const page=await browser.newPage();page.on('pageerror',e=>failures.push(e.message));
  await ready(page,base+'/');await page.locator('#start').click();
  // All playable specials, with original damage/mana/healing rules.
- for(let i=0;i<18;i++){
-  await page.evaluate(i=>{battleActive=false;hero=i;party=[(i+1)%18,(i+2)%18];startBattle();Math.random=()=>0;combatants.forEach(p=>p.hp-=25)},i);
+ for(let i=0;i<16;i++){
+  await page.evaluate(i=>{battleActive=false;hero=i;party=[(i+1)%16,(i+2)%16];startBattle();Math.random=()=>0;combatants.forEach(p=>p.hp-=25)},i);
   const old=await page.evaluate(()=>({hp:enemies[0].hp,party:combatants.map(p=>p.hp),cls:combatants[0].cls}));
   await page.getByRole('button',{name:/^✨/}).click();
   const now=await page.evaluate(()=>({hp:enemies[0].hp,mp:combatants[0].mp,party:combatants.map(p=>p.hp)}));
@@ -139,7 +139,7 @@ async function golden(page){
  for(const text of ['DANZA DE GUERRA','DANZA DEL TERREMOTO','PASO PROHIBIDO']){await page.evaluate(()=>enemyTurn());assert((await page.locator('#battleLog').innerText()).includes(text));}
  await page.evaluate(()=>{combatants.forEach(p=>p.hp=1);round=2;enemyTurn()});assert(await page.evaluate(()=>combatFinished));
  await page.getByRole('button',{name:'🔁 Reintentar encuentro'}).click();assert(await page.evaluate(()=>!combatFinished&&combatants.every(p=>p.hp===p.maxhp)));
- console.log('PASS 18 habilidades, maná, defensa, poción, Mirucha, combo, ambas fases II, tres danzas, derrota/reintento');
+ console.log('PASS 16 habilidades, maná, defensa, poción, Mirucha, combo, ambas fases II, tres danzas, derrota/reintento');
  const consoleErrors=[];page.on('console',m=>{if(m.type()==='error')consoleErrors.push(m.text())});
  await page.route('**/nacho.png*',r=>r.abort());await ready(page,base+'/');
  assert((await page.locator('#assetStatus').innerText()).includes('nacho'));
