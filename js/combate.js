@@ -109,6 +109,29 @@ function battleHero(g, p, i) {
   g.save();
   g.translate(x, y + bob);
   if (p.hp <= 0) g.globalAlpha = 0.45;
+  const art = heroArt[p.spriteKey];
+  if (art && art.complete && art.naturalWidth) {
+    // Lienzos uniformes: misma escala, siluetas distintas. Pies en el suelo
+    // original (y + 37); 88 px de ancho dejan 8 px entre slots consecutivos.
+    const width = 88, height = width * art.naturalHeight / art.naturalWidth;
+    g.imageSmoothingEnabled = false;
+    if (heroSpriteCatalog[p.name]?.flip) g.scale(-1, 1);
+    g.drawImage(art, -width / 2, 37 - height, width, height);
+  } else {
+    // Reserva geométrica original solo si falla el PNG; carga informa del fallo.
+    battleHeroFallback(g, p);
+  }
+  g.restore();
+  g.textAlign = "center";
+  g.font = "bold 12px monospace";
+  g.fillStyle = "#fff1cf";
+  g.fillText(p.name, x, y - 76);
+  if (i === activeTurn && !combatFinished) {
+    g.fillStyle = "#ffe17e";
+    g.fillText("▼", x, y - 93);
+  }
+}
+function battleHeroFallback(g, p) {
   pixel(g, -16, 16, 12, 21, "#2a2839");
   pixel(g, 4, 16, 12, 21, "#2a2839");
   pixel(g, -23, -16, 46, 39, p.hp > 0 ? colors[p.cls] : "#58515e");
@@ -133,15 +156,6 @@ function battleHero(g, p, i) {
   if (p.cls === "Clérigo") {
     pixel(g, 20, -20, 5, 46, "#d9b97e");
     pixel(g, 17, -29, 12, 12, "#f1e6a9");
-  }
-  g.restore();
-  g.textAlign = "center";
-  g.font = "bold 12px monospace";
-  g.fillStyle = "#fff1cf";
-  g.fillText(p.name, x, y - 62);
-  if (i === activeTurn && !combatFinished) {
-    g.fillStyle = "#ffe17e";
-    g.fillText("▼", x, y - 79);
   }
 }
 function battleDraw(now = performance.now()) {
@@ -248,6 +262,7 @@ function startBattle() {
               : 66;
     return {
       name: data[i][0],
+      spriteKey: heroSpriteCatalog[data[i][0]]?.key,
       cls,
       special: data[i][3],
       hp: maxhp,

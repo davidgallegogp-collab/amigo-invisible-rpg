@@ -1,5 +1,5 @@
 "use strict";
-// Datos originales: 18 personajes, clases y posiciones de la taberna.
+// Datos originales: 16 personajes, clases y posiciones de la taberna.
 const data = [
   [
     "David",
@@ -33,18 +33,6 @@ const data = [
   ["María", "Clérigo", "Tú, chavales, ¿jugamos al Gang Beasts?", "¡MANUEL!"],
   ["Martín", "Guerrero", "¿Dos doses o dos doses?", "FP de jardinería"],
   [
-    "Juan",
-    "Mago",
-    "A ver, en verdad, pues sí...",
-    "Vamos a mirarnos a nosotros primero",
-  ],
-  [
-    "Fran",
-    "Pícaro",
-    "Nah, estás completamente basado. ¿Descendemos al averno?",
-    "Ligarse a la camarera",
-  ],
-  [
     "Óscar",
     "Mago",
     "Yo juego eminencias, pero que no están chetas",
@@ -68,7 +56,7 @@ const data = [
     "En Venezuela sí ponen Los Simpsons, y tenemos televisores",
     "Panchitada histórica",
   ],
-  ["Alba", "Clérigo", "¿Sale piti? Juan moment", "Besito en la frente"],
+  ["Alba", "Clérigo", "¿Sale piti?", "Besito en la frente"],
 ];
 const colors = {
   Mago: "#9a7be2",
@@ -78,23 +66,13 @@ const colors = {
   Guerrero: "#6793c8",
   Clérigo: "#dfc5a1",
 };
-const positions = [
-  [94, 178],
-  [210, 178],
-  [335, 178],
-  [455, 178],
-  [575, 178],
-  [695, 178],
-  [95, 333],
-  [212, 333],
-  [337, 333],
-  [457, 333],
-  [575, 333],
-  [695, 333],
-  [96, 480],
-  [210, 480],
-  [335, 480],
-  [455, 480],
-  [575, 480],
-  [696, 480],
-];
+// Posiciones asociadas al nombre: eliminar/reordenar data no desplaza a otro NPC.
+const characterPositions = {
+  David: [94, 178], Noelia: [210, 178], Jordux: [335, 178],
+  Pablo: [455, 178], Villa: [575, 178], Jesús: [695, 178],
+  Carlos: [95, 333], Lucía: [245, 333], Manu: [395, 333],
+  María: [545, 333], Martín: [695, 333],
+  Óscar: [96, 480], Lobato: [246, 480], Guarriadna: [396, 480],
+  Ari: [546, 480], Alba: [696, 480],
+};
+const positions = data.map(([name]) => characterPositions[name]);

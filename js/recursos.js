@@ -8,6 +8,26 @@ const spriteCatalog = {
   avionatin: { file: "avionatin", version: "34d1ab8f3d79" },
   abel: { file: "abel", version: "f4dd69bf62b5" },
 };
+// Asociación estable por nombre visible; claves y PNG del manifiesto aprobado.
+const heroSpriteCatalog = {
+  "David": { key: "david", version: "54ab7ae153a5", flip: false },
+  "Noelia": { key: "noelia", version: "d40abe3bfc7a", flip: false },
+  "Jordux": { key: "jordux", version: "da54970d19fa", flip: false },
+  "Pablo": { key: "pablo", version: "0d9170289ce7", flip: false },
+  "Villa": { key: "villa", version: "df13cfd723e2", flip: false },
+  "Jesús": { key: "jesus", version: "32ce25a77b36", flip: false },
+  "Carlos": { key: "carlos", version: "c66ef518065e", flip: false },
+  "Lucía": { key: "lucia", version: "9317bb42f93a", flip: false },
+  "Manu": { key: "manu", version: "0acf95534b4b", flip: false },
+  "María": { key: "maria", version: "6cc24781804e", flip: false },
+  "Martín": { key: "martin", version: "30f95e1347c0", flip: false },
+  "Óscar": { key: "oscar", version: "39dd8a19f79a", flip: false },
+  "Lobato": { key: "lobato", version: "1b1f100a21c4", flip: false },
+  "Guarriadna": { key: "guarriadna", version: "1666a47f1778", flip: false },
+  "Ari": { key: "ari", version: "b29c5971eb8e", flip: false },
+  "Alba": { key: "alba", version: "b24d63323d6a", flip: false },
+};
+const heroArt = {};
 const enemyArt = {};
 const failedSprites = [];
 function cargarRecursos() {
@@ -18,20 +38,25 @@ function cargarRecursos() {
   $("panel").appendChild(assetStatus);
   $("start").disabled = true;
   return Promise.all(
-    Object.entries(spriteCatalog).map(
-      ([key, { file, version }]) =>
+    [
+      ...Object.entries(spriteCatalog).map(([key, { file, version }]) =>
+        ({ key, file, version, folder: "enemigos", cache: enemyArt })),
+      ...Object.values(heroSpriteCatalog).map(({ key, version }) =>
+        ({ key, file: key, version, folder: "personajes", cache: heroArt })),
+    ].map(
+      ({ key, file, version, folder, cache }) =>
         new Promise((resolve) => {
           const img = new Image();
-          enemyArt[key] = img;
+          cache[key] = img;
           img.onload = () => resolve();
           img.onerror = () => {
-            failedSprites.push(file);
+            failedSprites.push(folder + "/" + file);
             console.error("No se pudo cargar el sprite:", img.src);
             resolve();
           };
           // Relativa al documento: válida tanto en la raíz como bajo /amigo-invisible-rpg/.
           // Al cambiar un PNG, actualizar version con los primeros 12 caracteres de su SHA-256.
-          img.src = "assets/enemigos/" + file + ".png?v=" + version;
+          img.src = "assets/" + folder + "/" + file + ".png?v=" + version;
         }),
     ),
   ).then(() => {
@@ -39,8 +64,8 @@ function cargarRecursos() {
     assetStatus.textContent = failedSprites.length
       ? "No se pudieron cargar: " +
         failedSprites.join(", ") +
-        ". Comprueba la carpeta assets/enemigos. Se usarán dibujos de reserva."
-      : "Ilustraciones listas · Los seis enemigos";
+        ". Comprueba las carpetas assets/enemigos y assets/personajes. Se usarán dibujos de reserva."
+      : "Ilustraciones listas · 6 enemigos y 16 aventureros";
     if (failedSprites.length) {
       const warning = assetStatus.cloneNode(true);
       warning.id = "battleAssetStatus";
