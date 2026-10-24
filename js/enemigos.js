@@ -29,7 +29,7 @@ const encounters = [
   },
 ];
 
-function enemySprite(g, e, x, y) {
+function enemySprite(g, e, x, y, flash = 0) {
   const spriteImg = enemyArt[e.name.toLowerCase()] || enemyArt[e.kind];
   if (spriteImg && spriteImg.complete && spriteImg.naturalWidth) {
     // Ilustraciones dedicadas, escaladas con su proporción original.
@@ -73,6 +73,15 @@ function enemySprite(g, e, x, y) {
       Math.round(h),
     );
     g.restore();
+    if (flash > 0) {
+      g.save();
+      g.globalAlpha *= flash;
+      g.drawImage(
+        EnemyAnimations.flashImage(spriteImg, Math.round(w), Math.round(h)),
+        Math.round(x - w / 2), Math.round(y - h + 23),
+      );
+      g.restore();
+    }
     return;
   }
 

@@ -144,28 +144,29 @@ function battleHero(g, p, i) {
     g.fillText("▼", x, y - 79);
   }
 }
-function battleDraw() {
+function battleDraw(now = performance.now()) {
   if (!battleActive) return;
   const g = bctx;
   visualFrame++;
   battleBackdrop(g);
-  const living = enemies.filter((e) => e.hp > 0),
+  const slots = enemies,
     pos =
-      living.length === 1
+      slots.length === 1
         ? [180]
-        : living.length === 2
+        : slots.length === 2
           ? [114, 269]
           : [85, 230, 355];
-  living.forEach((e, i) => {
+  slots.forEach((e, i) => {
+    const animation = EnemyAnimations.sample(e, now);
+    if (!animation.visible) return;
     const x = pos[i],
       y = e.kind === "boss" ? 247 : 244;
     g.save();
-    g.translate(
-      0,
-      Math.sin(visualFrame * 0.06 + i * 1.9) * (e.kind === "boss" ? 5 : 2),
-    );
-    enemySprite(g, e, x, y);
+    g.translate(animation.x, animation.y);
+    g.globalAlpha = animation.alpha;
+    enemySprite(g, e, x, y, animation.flash);
     g.restore();
+    if (e.hp <= 0) return;
     g.font = "bold 12px monospace";
     g.textAlign = "center";
     g.fillStyle = "#fff0d0";
@@ -191,8 +192,8 @@ function battleDraw() {
     visualPulse = Math.max(0, visualPulse - 1.3);
   }
 }
-function visualLoop() {
-  if (battleActive) battleDraw();
+function visualLoop(now) {
+  if (battleActive) battleDraw(now);
   requestAnimationFrame(visualLoop);
 }
 
@@ -260,6 +261,7 @@ function startBattle() {
   startEncounter();
 }
 function startEncounter() {
+  EnemyAnimations.reset();
   combatFinished = false;
   round = 1;
   activeTurn = 0;
@@ -322,6 +324,7 @@ function finishBattle(won) {
   }
 }
 function leaveDungeon() {
+  EnemyAnimations.reset();
   battleActive = false;
   $("battle").style.display = "none";
   player = { x: 680, y: 545 };
@@ -358,7 +361,9 @@ function checkPhase() {
     : " ¡Arturo absorbe la velocidad de Nacho! ¡Martillo frenético!";
 }
 function damageEnemy(e, d) {
+  const previousHp = e.hp;
   e.hp = Math.max(0, e.hp - d);
+  if (e.hp < previousHp) EnemyAnimations.play(e, e.hp === 0 ? "death" : "hurt");
   return checkPhase();
 }
 function actionDone(message) {
@@ -391,6 +396,7 @@ function enemyTurn() {
   for (const e of livingEnemies()) {
     if (!living().length) break;
     if (stage === 0) {
+      EnemyAnimations.play(e, "attack");
       const phrases = [
         "«¡El agua de Madriz está buenísima!»",
         "«¡Esto en Madrid no pasa!»",
@@ -411,6 +417,8 @@ function enemyTurn() {
     } else if (stage === 1) {
       const duo = livingEnemies().length === 2;
       if (duo && e.name === "Arturo" && Math.random() < 0.6) {
+        EnemyAnimations.play(e, "attack");
+        EnemyAnimations.play(enemies.find((ally) => ally.name === "Nacho"), "attack");
         const victim = pick(),
           d = hitHero(victim, 22 + Math.floor(Math.random() * 6));
         lines.push(
@@ -423,6 +431,7 @@ function enemyTurn() {
       } else if (e.name === "Nacho" && duo) {
         lines.push("Nacho cubre a Arturo con su lanza.");
       } else {
+        EnemyAnimations.play(e, "attack");
         const victim = pick(),
           d = hitHero(victim, e.atk + Math.floor(Math.random() * 5));
         lines.push(
@@ -436,6 +445,7 @@ function enemyTurn() {
         );
       }
     } else if (e.name === "Quico") {
+      EnemyAnimations.play(e, "attack");
       const move = round % 3;
       if (move === 1) {
         enemyBoost = 2;
@@ -455,6 +465,7 @@ function enemyTurn() {
         );
       }
     } else {
+      EnemyAnimations.play(e, "attack");
       const victim = pick(),
         d = hitHero(
           victim,
