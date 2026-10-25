@@ -136,14 +136,7 @@ function close() {
 }
 
 function update() {
-  $("team").textContent =
-    "⚔ Equipo: " +
-    data[hero][0] +
-    " · " +
-    party.map((i) => data[i][0]).join(" · ") +
-    (party.length === 2
-      ? " · ¡Listo!"
-      : " · " + (2 - party.length) + " huecos libres");
+  renderTeamPanel();
   $("dungeon").disabled = !started || party.length !== 2;
   render();
 }

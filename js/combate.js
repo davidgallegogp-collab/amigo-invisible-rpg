@@ -188,7 +188,7 @@ function battleDraw(now = performance.now()) {
           : [85, 230, 355];
   slots.forEach((e, i) => {
     const animation = EnemyAnimations.sample(e, now);
-    if (!animation.visible) return;
+    if (!animation.visible) { drawEnemyStatus(g, e, pos[i]); return; }
     const x = pos[i],
       y = e.kind === "boss" ? 247 : 244;
     g.save();
@@ -196,24 +196,7 @@ function battleDraw(now = performance.now()) {
     g.globalAlpha = animation.alpha;
     enemySprite(g, e, x, y, animation.flash);
     g.restore();
-    if (e.hp <= 0) return;
-    g.font = "bold 12px monospace";
-    g.textAlign = "center";
-    g.fillStyle = "#fff0d0";
-    g.fillText(e.name, x, 49);
-    pixel(g, x - 48, 56, 96, 12, "#211c2d");
-    pixel(
-      g,
-      x - 46,
-      58,
-      (92 * e.hp) / e.maxhp,
-      8,
-      e.enraged ? "#ffc06a" : "#e77d8e",
-    );
-    if (e.enraged) {
-      g.fillStyle = "#ffda6c";
-      g.fillText("★ FASE II", x, 83);
-    }
+    drawEnemyStatus(g, e, x);
   });
   combatants.forEach((p, i) => battleHero(g, p, i, now));
   if (visualPulse > 0) {
@@ -228,30 +211,7 @@ function visualLoop(now) {
 }
 
 function battleStatus() {
-  $("battleStatus").textContent =
-    combatants
-      .map(
-        (p, i) =>
-          (i === activeTurn && !combatFinished ? "▶ " : "  ") +
-          p.name +
-          ": " +
-          Math.max(0, p.hp) +
-          "/" +
-          p.maxhp +
-          " PV · " +
-          p.mp +
-          "/" +
-          p.maxmp +
-          " PM" +
-          (p.hp <= 0 ? " ☠" : ""),
-      )
-      .join("\n") +
-    "\n" +
-    enemies
-      .map((e) => e.name + ": " + Math.max(0, e.hp) + "/" + e.maxhp + " PV")
-      .join(" · ") +
-    " · Ronda " +
-    round;
+  renderBattleStatus();
   battleDraw();
 }
 function nextLiving(start) {

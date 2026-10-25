@@ -6,6 +6,7 @@ data.forEach((p, i) => {
   o.textContent = p[0] + " — " + p[1];
   $("pick").appendChild(o);
 });
+initInterface();
 $("start").onclick = () => {
   hero = Number($("pick").value);
   party = [];
@@ -41,6 +42,6 @@ canvas.addEventListener("pointerleave", () => {
   if (!modal && hoveredNpc !== null) { hoveredNpc = null; render(); }
 });
 const enemyArtReady = cargarRecursos();
-enemyArtReady.then(render);
+enemyArtReady.then(() => { render(); refreshSelectionArt(); });
 render();
 requestAnimationFrame(visualLoop);
