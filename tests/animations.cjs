@@ -17,7 +17,7 @@ function harness(baseline = false) {
       translate(x,y){this.tx+=x;this.ty+=y},
       drawImage(img,...args){draws.push({src:img.src,args,alpha:this.globalAlpha,x:this.tx,y:this.ty})},
     };
-    for(const key of ['fillRect','strokeRect','beginPath','ellipse','fill','fillText','moveTo','lineTo','scale'])g[key]=()=>{};
+    for(const key of ['clearRect','fillRect','strokeRect','beginPath','ellipse','fill','fillText','moveTo','lineTo','scale'])g[key]=()=>{};
     return g;
   };
   function element(){return {children:[],style:{},dataset:{},events:{},value:'0',textContent:'',
@@ -47,7 +47,7 @@ function harness(baseline = false) {
       :fs.readFileSync(path.join(root,file),'utf8');
     vm.runInContext(source,sandbox,{filename:file});
   }
-  if (baseline) run('data.splice(12,1);data.splice(11,1);data.find(p=>p[0]==="Alba")[2]="¿Sale piti?"');
+  if (baseline) run('data.splice(12,1);data.splice(11,1);data.find(p=>p[0]==="Alba")[2]="¿Sale piti?";data.splice(data.findIndex(p=>p[0]==="Martín"),1)');
   run('Math.random=()=>0');
   return {run,draws,elements,pads,listeners,time(t){now=t},click(id,prefix){
     const b=elements.get(id).children.find(b=>b.textContent.startsWith(prefix));
@@ -111,8 +111,8 @@ console.log('PASS dibujo conserva dimensiones y anclajes; muerte desaparece sin 
 const old=harness(true), fresh=harness();
 const snapshot=`JSON.stringify({enemies,combatants,stage,round,phase2,enemyBoost,activeTurn,combatFinished,usedPotion,log:$("battleLog").textContent},(key,value)=>key==="spriteKey"?undefined:value)`;
 const both=code=>{old.run(code);fresh.run(code);assert.equal(fresh.run(snapshot),old.run(snapshot))};
-for(let hero=0;hero<16;hero++){
- both(`battleActive=false;hero=${hero};party=[(${hero}+1)%16,(${hero}+2)%16];startBattle();combatants.forEach(p=>p.hp-=25)`);
+for(let hero=0;hero<15;hero++){
+ both(`battleActive=false;hero=${hero};party=[(${hero}+1)%15,(${hero}+2)%15];startBattle();combatants.forEach(p=>p.hp-=25)`);
  old.click('battleActions','✨');fresh.click('battleActions','✨');assert.equal(fresh.run(snapshot),old.run(snapshot));
 }
 both('stage=0;startEncounter();combatants.forEach(p=>{p.hp=p.maxhp=10000});combatants[0].hp=9900');
@@ -145,7 +145,7 @@ for(let st=0;st<3;st++){
 old.click('battleActions','🎁');fresh.click('battleActions','🎁');assert.equal(fresh.run(snapshot),old.run(snapshot));
 assert(fresh.elements.get('battleLog').textContent.includes('Has completado'));
 fresh.click('battleActions','🍺');assert.equal(fresh.run('battleActive'),false);
-console.log('PASS reglas idénticas: 16 habilidades, combo, ambas fases II, tres danzas, derrota/reintento, tres encuentros y cofre (PV ampliados en simulación)');
+console.log('PASS reglas idénticas: 15 habilidades, combo, ambas fases II, tres danzas, derrota/reintento, tres encuentros y cofre (PV ampliados en simulación)');
 // Interacción estática: diálogos y reclutamiento, sin movimiento.
 const ui=harness();ui.elements.get('start').onclick();
 assert.equal(ui.elements.get('dungeon').disabled,true);

@@ -6,7 +6,7 @@ const {execFileSync}=require('node:child_process');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),base='f602fc48d723d57c15e1ea4cf2a565f5b27eb537';
 const original=vm.createContext({});vm.runInContext(execFileSync('git',['show',base+':js/personajes.js'],{cwd:root,encoding:'utf8'}),original);
-const expected=JSON.parse(vm.runInContext('JSON.stringify(data.filter(p=>!["Juan","Fran"].includes(p[0])))',original));
+const expected=JSON.parse(vm.runInContext('JSON.stringify(data.filter(p=>!["Juan","Fran","Martín"].includes(p[0])))',original));
 expected.find(p=>p[0]==='Alba')[2]='¿Sale piti?';
 for(const file of ['js/animaciones.js','js/enemigos.js','js/estado.js',...fs.readdirSync(path.join(root,'assets/enemigos')).map(n=>'assets/enemigos/'+n)]){
  assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})),file+' ha cambiado');
@@ -24,9 +24,9 @@ const server=http.createServer((req,res)=>{
  const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1100,height:850},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
  const page=await context.newPage(),errors=[],bad=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)bad.push(r.url())});
  await page.goto('http://127.0.0.1:'+server.address().port+'/amigo-invisible-rpg/');await page.evaluate(()=>enemyArtReady);
- assert.equal(await page.locator('#pick option').count(),16);
+ assert.equal(await page.locator('#pick option').count(),15);
  assert.deepEqual(await page.evaluate(()=>data),expected);
- assert.deepEqual(await page.evaluate(()=>Object.values(heroArt).map(img=>[img.complete,img.naturalWidth,img.naturalHeight])),Array(16).fill([true,384,450]));
+ assert.deepEqual(await page.evaluate(()=>Object.values(heroArt).map(img=>[img.complete,img.naturalWidth,img.naturalHeight])),Array(15).fill([true,384,450]));
  await page.locator('#start').click();
  const checks=await page.evaluate(()=>{
   const assert=(v,m)=>{if(!v)throw new Error(m)};
@@ -35,11 +35,11 @@ const server=http.createServer((req,res)=>{
    const c=heroSpriteCatalog[data[i][0]];assert(c,'catálogo');keys.add(c.key);
    assert(!c.flip,'orientación izquierda original');
   }
-  assert(keys.size===16,'IDs únicos');
+  assert(keys.size===15,'IDs únicos');
   // Interacción por ID y selección directa, sin requisitos de proximidad.
-  for(let protagonist=0;protagonist<16;protagonist++){
+  for(let protagonist=0;protagonist<15;protagonist++){
    hero=protagonist;party=[];
-   for(let i=0;i<16;i++)if(i!==hero){
+   for(let i=0;i<15;i++)if(i!==hero){
     close();talk(i);
     assert($('npcTitle').textContent.startsWith(data[i][0]),'NPC confundido');
     $('actions').querySelector('button').click();assert(party.includes(i),'reclutamiento');party=[];close();
@@ -47,14 +47,14 @@ const server=http.createServer((req,res)=>{
   }
   // Todas las combinaciones ordenadas: identidad estable, también misma clase.
   let combinations=0;
-  for(let a=0;a<16;a++)for(let b=0;b<16;b++)for(let c=0;c<16;c++)if(a!==b&&a!==c&&b!==c){
+  for(let a=0;a<15;a++)for(let b=0;b<15;b++)for(let c=0;c<15;c++)if(a!==b&&a!==c&&b!==c){
    battleActive=false;hero=a;party=[b,c];startBattle();
    assert(combatants.every((p,i)=>p.spriteKey===heroSpriteCatalog[data[[a,b,c][i]][0]].key),'sprite intercambiado');combinations++;
   }
   // Los 16 se dibujan en cada slot, con alfa y dimensiones válidos.
   const draw=bctx.drawImage.bind(bctx);const calls=[];
   bctx.drawImage=(img,...args)=>{calls.push({src:img.src,args,alpha:bctx.globalAlpha,smooth:bctx.imageSmoothingEnabled});draw(img,...args)};
-  for(let a=0;a<16;a++)for(let i=0;i<3;i++){
+  for(let a=0;a<15;a++)for(let i=0;i<3;i++){
    const p={name:data[a][0],spriteKey:heroSpriteCatalog[data[a][0]].key,cls:data[a][1],hp:10};
    calls.length=0;battleHero(bctx,p,i);assert(calls.length===1,'PNG no dibujado');
    const d=calls[0];assert(d.src.includes('/'+p.spriteKey+'.png'),'imagen incorrecta');assert(!d.smooth,'suavizado');assert(d.alpha===1,'alfa vivo');
@@ -62,18 +62,18 @@ const server=http.createServer((req,res)=>{
    p.hp=0;calls.length=0;battleHero(bctx,p,i);assert(calls[0].alpha===0.45,'derrota');assert(bctx.globalAlpha===1,'alfa sin restaurar');
   }
   bctx.drawImage=draw;
-  return {combinations,npcChecks:16*15};
+  return {combinations,npcChecks:15*14};
  });
- assert.equal(checks.combinations,3360);assert.equal(checks.npcChecks,240);
+ assert.equal(checks.combinations,2730);assert.equal(checks.npcChecks,210);
  if(process.env.SNAPSHOT_DIR){
   fs.mkdirSync(process.env.SNAPSHOT_DIR,{recursive:true});
-  for(let a=0;a<16;a+=3){
-   await page.evaluate(a=>{battleActive=false;hero=a;party=[(a+1)%16,(a+2)%16];startBattle();stage=2;startEncounter();visualPulse=0;battleDraw()},a);
+  for(let a=0;a<15;a+=3){
+   await page.evaluate(a=>{battleActive=false;hero=a;party=[(a+1)%15,(a+2)%15];startBattle();stage=2;startEncounter();visualPulse=0;battleDraw()},a);
    await page.locator('#battleCanvas').screenshot({path:path.join(process.env.SNAPSHOT_DIR,`${mobile?'mobile':'desktop'}-${a}.png`)});
   }
  }
  assert.deepEqual(errors,[]);assert.deepEqual(bad,[]);
- console.log('PASS',mobile?'móvil emulado DPR2':'escritorio','16 PNG, fichas originales, 240 interacciones, 3360 equipos, 48 dibujos, derrota, tamaños, rutas Pages y cero excepciones');
+ console.log('PASS',mobile?'móvil emulado DPR2':'escritorio','15 PNG, fichas originales, 210 interacciones, 2730 equipos, 45 dibujos, derrota, tamaños, rutas Pages y cero excepciones');
  // Recorrido con estadísticas normales: semilla determinista, solo botones del juego.
  const ending=await page.evaluate(()=>{
   battleActive=false;hero=0;party=[6,2];Math.random=()=>0;startBattle();

@@ -3,12 +3,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {execFileSync}=require('node:child_process');
 const {harness}=require('./animations.cjs');
 const root=path.resolve(__dirname,'..'),base='da7b5fc28a98888ba49737fdee5344b6cfb30b08';
-for(const file of ['js/animaciones.js','js/enemigos.js','js/recursos.js','js/estado.js',...['enemigos','personajes'].flatMap(dir=>fs.readdirSync(path.join(root,'assets',dir)).map(n=>'assets/'+dir+'/'+n))]){
+for(const file of ['js/animaciones.js','js/enemigos.js','js/estado.js',...['enemigos','personajes'].flatMap(dir=>fs.readdirSync(path.join(root,'assets',dir)).map(n=>'assets/'+dir+'/'+n))]){
  assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})),file);
 }
 assert(!/setTimeout|setInterval|requestAnimationFrame/.test(fs.readFileSync(path.join(root,'js/animaciones-heroes.js'),'utf8')));
 const h=harness(),sample=()=>h.run('HeroAnimations.sample(p)');
-for(let i=0;i<16;i++){
+for(let i=0;i<15;i++){
  h.run(`var p={name:data[${i}][0],hp:50};HeroAnimations.reset()`);
  for(const type of ['attack','skill','hurt','heal','guard']){
   h.run('HeroAnimations.reset()');h.time(1000);h.run(`HeroAnimations.play(p,'${type}')`);
@@ -25,7 +25,7 @@ for(let i=0;i<16;i++){
 h.time(3000);h.run('HeroAnimations.reset();var p={hp:50},q={hp:50};HeroAnimations.play(p,"hurt")');assert.equal(h.run('HeroAnimations.sample(q).type'),'idle');
 h.run('HeroAnimations.play(p,"attack")');h.time(3050);h.run('HeroAnimations.play(p,"hurt")');h.time(3270);assert.equal(sample().type,'attack');h.time(4000);assert.equal(sample().type,'idle');
 h.time(5000);h.run('HeroAnimations.play(p,"skill");HeroAnimations.play(p,"hurt");p.hp=0;HeroAnimations.play(p,"defeat")');h.time(6000);assert.equal(sample().type,'defeat');
-console.log('PASS 16 héroes × estados, izquierda, prioridades, golpes consecutivos, instancias y fin de animaciones');
+console.log('PASS 15 héroes × estados, izquierda, prioridades, golpes consecutivos, instancias y fin de animaciones');
 h.time(10000);h.run('hero=0;party=[6,2];startBattle();stage=1;startEncounter();var p=combatants[0]');
 h.click('battleActions','⚔');assert.equal(sample().type,'idle');h.click('battleActions','↩');assert.equal(sample().type,'idle');
 h.click('battleActions','⚔');h.click('battleActions','🎯');assert.equal(sample().type,'attack');
@@ -47,14 +47,14 @@ const snapshot='JSON.stringify({combatants,enemies,stage,round,phase2,enemyBoost
 const equal=()=>assert.equal(fresh.run(snapshot),old.run(snapshot));
 const both=code=>{old.run(code);fresh.run(code);equal()};
 const click=label=>{old.click('battleActions',label);fresh.click('battleActions',label);equal()};
-for(let i=0;i<16;i++){
- both(`battleActive=false;hero=${i};party=[(${i}+1)%16,(${i}+2)%16];startBattle();combatants.forEach(p=>p.hp-=25)`);click('✨');
+for(let i=0;i<15;i++){
+ both(`battleActive=false;hero=${i};party=[(${i}+1)%15,(${i}+2)%15];startBattle();combatants.forEach(p=>p.hp-=25)`);click('✨');
  both('stage=1;startEncounter();combatants.forEach(p=>p.hp=p.maxhp=10000)');click('⚔');click('🎯');click('🛡');click('🧪');
  both('hitHero(combatants[0],11);hitHero(combatants[0],13);hitHero(combatants[1],0)');
 }
 for(const victim of [0,1]){both('stage=1;startEncounter()');both(`damageEnemy(enemies[${victim}],10000);enemyTurn()`)}
 both('stage=2;startEncounter();combatants.forEach(p=>p.hp=10000)');for(let i=0;i<3;i++)both('enemyTurn()');
-console.log('PASS comparación exacta con v0.9: PV/PM, 16 habilidades, ataques, defensa, poción, turnos, ambas fases II y danzas');
+console.log('PASS comparación exacta con v0.9: PV/PM, 15 habilidades, ataques, defensa, poción, turnos, ambas fases II y danzas');
 
 async function browserChecks(){
  const http=require('node:http'),{chromium}=require('playwright');
@@ -80,7 +80,7 @@ async function browserChecks(){
     // Efectos sin recortes para cada slot; transformaciones de base y máscara coinciden.
     const draw=bctx.drawImage.bind(bctx),calls=[];bctx.drawImage=(img,...args)=>{calls.push({args,matrix:[...Object.values(bctx.getTransform().toJSON())],alpha:bctx.globalAlpha});draw(img,...args)};
     let renders=0;
-    for(let a=0;a<16;a++)for(let slot=0;slot<3;slot++)for(const type of ['attack','skill','hurt','heal','guard','defeat']){
+    for(let a=0;a<15;a++)for(let slot=0;slot<3;slot++)for(const type of ['attack','skill','hurt','heal','guard','defeat']){
      const p={name:data[a][0],spriteKey:heroSpriteCatalog[data[a][0]].key,cls:data[a][1],hp:type==='defeat'?0:50};HeroAnimations.reset();HeroAnimations.play(p,type,1000);
      calls.length=0;battleHero(bctx,p,slot,1060);const sample=HeroAnimations.sample(p,1060),left=489+96*slot-44+sample.x;
      assert(left>=0&&left+88<=768,'fuera del Canvas');assert(calls.length===(type==='attack'?1:2),'capa ausente');
@@ -92,7 +92,7 @@ async function browserChecks(){
     const p=combatants[0];HeroAnimations.play(p,'hurt',1000);const once=JSON.stringify(HeroAnimations.sample(p,1080));for(let i=0;i<144;i++)HeroAnimations.sample(p,1080);assert(once===JSON.stringify(HeroAnimations.sample(p,1080)),'dependencia de FPS');
     return {variants,renders};
    });
-   assert.equal(result.variants,96);assert.equal(result.renders,288);assert.deepEqual(errors,[]);
+   assert.equal(result.variants,90);assert.equal(result.renders,270);assert.deepEqual(errors,[]);
    const frameTiming=await page.evaluate(async()=>{
     HeroAnimations.reset();combatants.forEach(p=>HeroAnimations.play(p,'skill'));
     const times=[];await new Promise(resolve=>{const frame=t=>{times.push(t);if(times.length===61)resolve();else requestAnimationFrame(frame)};requestAnimationFrame(frame)});
