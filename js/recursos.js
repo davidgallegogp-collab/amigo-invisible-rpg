@@ -26,6 +26,13 @@ const heroSpriteCatalog = {
   "Ari": { key: "ari", version: "b29c5971eb8e", flip: false },
   "Alba": { key: "alba", version: "b24d63323d6a", flip: false },
 };
+// Orden de los encuentros existentes: Mirucha; Nacho/Arturo; Quico y aliados.
+const battleBackgroundCatalog = [
+  { key: "combate_1_mirucha", version: "cc1ce641e192" },
+  { key: "combate_2_nacho_arturo", version: "cdff485e5715" },
+  { key: "combate_3_jefe_final", version: "aaccd2238585" },
+];
+const battleBackgroundArt = {};
 const tavernArt = {};
 const tavernCatalog = {"pere": "74c0d782e5ec", "tavern_bg": "b5ce20d590f9"};
 const heroArt = {};
@@ -40,6 +47,8 @@ function cargarRecursos() {
   $("start").disabled = true;
   return Promise.all(
     [
+      ...battleBackgroundCatalog.map(({ key, version }) =>
+        ({ key, file: key, version, folder: "combates", cache: battleBackgroundArt })),
       ...Object.entries(tavernCatalog).map(([key, version]) =>
         ({ key, file: key, version, folder: "taberna", cache: tavernArt })),
       ...Object.entries(spriteCatalog).map(([key, { file, version }]) =>
@@ -67,8 +76,8 @@ function cargarRecursos() {
     assetStatus.textContent = failedSprites.length
       ? "No se pudieron cargar: " +
         failedSprites.join(", ") +
-        ". Comprueba las carpetas assets/enemigos, assets/personajes y assets/taberna. Se usarán dibujos de reserva."
-      : "Ilustraciones listas · 6 enemigos y 15 aventureros · Taberna y Pere";
+        ". Comprueba las carpetas assets/enemigos, assets/personajes, assets/taberna y assets/combates. Se usarán dibujos de reserva."
+      : "Ilustraciones listas · 6 enemigos y 15 aventureros · Taberna, Pere y 3 fondos de combate";
     if (failedSprites.length) {
       const warning = assetStatus.cloneNode(true);
       warning.id = "battleAssetStatus";

@@ -35,7 +35,7 @@ const data = [
     "Óscar",
     "Mago",
     "Yo juego eminencias, pero que no están chetas",
-    "Yo juego eminencias",
+    "Te llevo al Clot y te enseño los pajaros",
   ],
   [
     "Lobato",

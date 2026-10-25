@@ -20,6 +20,18 @@ function pixel(g, x, y, w, h, c) {
   g.fillRect(Math.round(x), Math.round(y), w, h);
 }
 function battleBackdrop(g) {
+  const background = battleBackgroundArt[battleBackgroundCatalog[stage]?.key];
+  if (background && background.complete && background.naturalWidth) {
+    g.save();
+    g.imageSmoothingEnabled = false;
+    g.drawImage(background, 0, 0, 768, 355);
+    g.restore();
+    return;
+  }
+  battleBackdropFallback(g);
+}
+// Escenarios originales disponibles si falla la carga de un fondo.
+function battleBackdropFallback(g) {
   const t = visualFrame,
     st = stage;
   const sky = st === 0 ? "#202342" : st === 1 ? "#171e34" : "#26172b";
