@@ -6,8 +6,8 @@
       name="viewport"
       content="width=device-width,initial-scale=1,user-scalable=no"
     />
-    <title>La Taberna del Amigo Invisible v0.9.1</title>
-    <link rel="stylesheet" href="css/styles.css?v=0.7.1" />
+    <title>La Taberna del Amigo Invisible v1.0</title>
+    <link rel="stylesheet" href="css/styles.css?v=1.0" />
   </head>
   <body>
     <div id="overlay">
@@ -16,30 +16,21 @@
         <p>Elige a tu aventurero</p>
         <select id="pick"></select>
         <button id="start">⚔ Entrar en la taberna</button>
-        <small>Versión 0.9.1 · Animaciones de aventureros</small>
+        <small>Versión 1.0 · Taberna interactiva</small>
       </div>
     </div>
-    <h1>🍺 La Taberna del Amigo Invisible <small>v0.9.1</small></h1>
+    <h1>🍺 La Taberna del Amigo Invisible <small>v1.0</small></h1>
     <div id="info">
       <div id="message">
-        Explora la taberna, habla con tus amigos y recluta dos compañeros.
+        Pulsa sobre los aventureros para hablar y reclutar dos compañeros.
       </div>
       <div id="team"></div>
     </div>
     <canvas id="game" width="896" height="608"> </canvas>
-    <div id="pad">
-      <button data-dir="left">◀</button>
-      <div class="stack">
-        <button data-dir="up">▲</button>
-        <button data-dir="down">▼</button>
-      </div>
-      <button data-dir="right">▶</button>
-      <button id="talk">💬 Hablar</button>
+    <div id="tavernActions">
+      <button id="dungeon" disabled>⚔ Entrar en la mazmorra</button>
+      <p><small>Pulsa un personaje para conversar. Recluta dos compañeros y entra en la mazmorra.</small></p>
     </div>
-    <small
-      >WASD o flechas · E para hablar · Mueve el dedo sobre el mapa o usa los
-      controles</small
-    >
     <div id="battle">
       <div id="battleCard">
         <h2>⚔ La mazmorra del amigo invisible</h2>
@@ -57,14 +48,14 @@
         <div id="actions"></div>
       </div>
     </div>
-    <script defer src="js/personajes.js?v=0.9"></script>
+    <script defer src="js/personajes.js?v=1.0"></script>
     <script defer src="js/estado.js?v=0.7.1"></script>
     <script defer src="js/animaciones.js?v=0.8"></script>
     <script defer src="js/enemigos.js?v=0.8"></script>
     <script defer src="js/recursos.js?v=0.9"></script>
-    <script defer src="js/taberna.js?v=0.7.1"></script>
+    <script defer src="js/taberna.js?v=1.0"></script>
     <script defer src="js/animaciones-heroes.js?v=0.9.1"></script>
     <script defer src="js/combate.js?v=0.9.1"></script>
-    <script defer src="js/main.js?v=0.7.1"></script>
+    <script defer src="js/main.js?v=1.0"></script>
   </body>
 </html>
