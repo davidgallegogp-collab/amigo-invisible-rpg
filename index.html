@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width,initial-scale=1,user-scalable=no"
     />
-    <title>La Taberna del Amigo Invisible v1.0</title>
+    <title>La Taberna del Amigo Invisible v1.0.1</title>
     <link rel="stylesheet" href="css/styles.css?v=1.0" />
   </head>
   <body>
@@ -16,10 +16,10 @@
         <p>Elige a tu aventurero</p>
         <select id="pick"></select>
         <button id="start">⚔ Entrar en la taberna</button>
-        <small>Versión 1.0 · Taberna interactiva</small>
+        <small>Versión 1.0.1 · Taberna y personajes</small>
       </div>
     </div>
-    <h1>🍺 La Taberna del Amigo Invisible <small>v1.0</small></h1>
+    <h1>🍺 La Taberna del Amigo Invisible <small>v1.0.1</small></h1>
     <div id="info">
       <div id="message">
         Pulsa sobre los aventureros para hablar y reclutar dos compañeros.
@@ -42,9 +42,14 @@
     </div>
     <div id="modal">
       <div id="dialogbox">
+        <div id="dialogContent">
+          <canvas id="npcPortrait" width="240" height="300" role="img"></canvas>
+          <div id="npcText">
         <h2 id="npcTitle"></h2>
         <p id="npcLine"></p>
         <p id="npcDetail"></p>
+        </div>
+        </div>
         <div id="actions"></div>
       </div>
     </div>
@@ -52,7 +57,7 @@
     <script defer src="js/estado.js?v=0.7.1"></script>
     <script defer src="js/animaciones.js?v=0.8"></script>
     <script defer src="js/enemigos.js?v=0.8"></script>
-    <script defer src="js/recursos.js?v=0.9"></script>
+    <script defer src="js/recursos.js?v=1.0.1"></script>
     <script defer src="js/taberna.js?v=1.0"></script>
     <script defer src="js/animaciones-heroes.js?v=0.9.1"></script>
     <script defer src="js/combate.js?v=0.9.1"></script>
