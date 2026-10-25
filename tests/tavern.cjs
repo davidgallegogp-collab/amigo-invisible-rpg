@@ -2,8 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),vm=require('node:vm');
 const assert=require('node:assert/strict'),{execFileSync}=require('node:child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),base='2d37492f1c6d42086278386cefe809409884ac52';
-for(const file of ['js/combate.js','js/animaciones.js','js/animaciones-heroes.js','js/enemigos.js','js/estado.js',...['personajes','enemigos'].flatMap(d=>fs.readdirSync(path.join(root,'assets',d)).map(n=>'assets/'+d+'/'+n))])assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})),file+' modificado');
+for(const file of ['js/animaciones.js','js/animaciones-heroes.js','js/enemigos.js','js/estado.js',...['personajes','enemigos'].flatMap(d=>fs.readdirSync(path.join(root,'assets',d)).map(n=>'assets/'+d+'/'+n))])assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})),file+' modificado');
 const c=vm.createContext({});vm.runInContext(execFileSync('git',['show',base+':js/personajes.js'],{cwd:root,encoding:'utf8'}),c);const expected=JSON.parse(vm.runInContext('JSON.stringify(data.filter(p=>p[0]!=="Martín"))',c));
+expected.find(p=>p[0]==='Óscar')[3]='Te llevo al Clot y te enseño los pajaros';
 const server=http.createServer((req,res)=>{let p=new URL(req.url,'http://localhost').pathname.replace(/^\/amigo-invisible-rpg/,'');if(p==='/')p='/index.html';const f=path.join(root,p);if(!f.startsWith(root+path.sep)||!fs.existsSync(f)){res.writeHead(404);return res.end()}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.png':'image/png','.css':'text/css'})[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f))});
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;

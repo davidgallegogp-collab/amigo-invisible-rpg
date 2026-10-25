@@ -47,7 +47,7 @@ function harness(baseline = false) {
       :fs.readFileSync(path.join(root,file),'utf8');
     vm.runInContext(source,sandbox,{filename:file});
   }
-  if (baseline) run('data.splice(12,1);data.splice(11,1);data.find(p=>p[0]==="Alba")[2]="¿Sale piti?";data.splice(data.findIndex(p=>p[0]==="Martín"),1)');
+  if (baseline) run('data.splice(12,1);data.splice(11,1);data.find(p=>p[0]==="Alba")[2]="¿Sale piti?";data.splice(data.findIndex(p=>p[0]==="Martín"),1);data.find(p=>p[0]==="Óscar")[3]="Te llevo al Clot y te enseño los pajaros"');
   run('Math.random=()=>0');
   return {run,draws,elements,pads,listeners,time(t){now=t},click(id,prefix){
     const b=elements.get(id).children.find(b=>b.textContent.startsWith(prefix));

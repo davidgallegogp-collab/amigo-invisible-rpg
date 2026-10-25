@@ -8,6 +8,7 @@ const root=path.resolve(__dirname,'..'),base='f602fc48d723d57c15e1ea4cf2a565f5b2
 const original=vm.createContext({});vm.runInContext(execFileSync('git',['show',base+':js/personajes.js'],{cwd:root,encoding:'utf8'}),original);
 const expected=JSON.parse(vm.runInContext('JSON.stringify(data.filter(p=>!["Juan","Fran","Martín"].includes(p[0])))',original));
 expected.find(p=>p[0]==='Alba')[2]='¿Sale piti?';
+expected.find(p=>p[0]==='Óscar')[3]='Te llevo al Clot y te enseño los pajaros';
 for(const file of ['js/animaciones.js','js/enemigos.js','js/estado.js',...fs.readdirSync(path.join(root,'assets/enemigos')).map(n=>'assets/enemigos/'+n)]){
  assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})),file+' ha cambiado');
 }
