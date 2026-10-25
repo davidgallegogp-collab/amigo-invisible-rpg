@@ -13,6 +13,13 @@ function text(s, x, y, color = "#fff0d2", size = 12) {
 }
 
 function furniture() {
+  const bg = tavernArt.tavern_bg;
+  if (bg && bg.complete && bg.naturalWidth) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+    return;
+  }
+  // Escenario anterior como reserva si falla la imagen nueva.
   block(0, 0, 896, 608, "#51372d");
   for (let y = 12; y < 608; y += 24) {
     block(0, y, 896, 2, "#654735");
@@ -61,10 +68,10 @@ function sprite(x, y, cls, name, main = false) {
 }
 
 let hoveredNpc = null;
-const pereSpot = { x: 465, y: 55 };
+const pereSpot = { x: 448, y: 150 };
 function npcBounds(i) {
   const [x, y] = i === -1 ? [pereSpot.x, pereSpot.y] : positions[i];
-  return { x: x - 66, y: y - (i === -1 ? 48 : 108), w: 132, h: i === -1 ? 84 : 140 };
+  return { x: x - 54, y: y - 80, w: 108, h: 104 };
 }
 function npcAt(x, y) {
   for (const i of [-1, ...data.map((_, i) => i)]) {
@@ -93,7 +100,7 @@ function render() {
     }
     const img = heroArt[heroSpriteCatalog[p[0]]?.key];
     if (img && img.complete && img.naturalWidth) {
-      const w = 80, h = w * img.naturalHeight / img.naturalWidth;
+      const w = 64, h = w * img.naturalHeight / img.naturalWidth;
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(img, x - w / 2, y - h, w, h);
     } else sprite(x, y - 24, p[1], ""); // Reserva ya existente, solo ante un fallo.
@@ -105,7 +112,13 @@ function render() {
     ctx.strokeStyle = "#f4d9ac"; ctx.lineWidth = 2;
     ctx.strokeRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4);
   }
-  sprite(pereSpot.x, pereSpot.y, "Guerrero", "Pere 🍺");
+  const pere = tavernArt.pere;
+  if (pere && pere.complete && pere.naturalWidth) {
+    const h = 100, w = h * pere.naturalWidth / pere.naturalHeight;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(pere, pereSpot.x - w / 2, pereSpot.y - h, w, h);
+    text("Pere 🍺", pereSpot.x, pereSpot.y + 13, "#fff1d7", 14);
+  } else sprite(pereSpot.x, pereSpot.y - 24, "Guerrero", "Pere 🍺");
 }
 
 function action(label, fn) {
@@ -135,6 +148,23 @@ function update() {
   render();
 }
 
+function showPortrait(i) {
+  const portrait = $("npcPortrait"), g = portrait.getContext("2d");
+  const name = i === -1 ? "Pere" : data[i][0];
+  const img = i === -1 ? tavernArt.pere : heroArt[heroSpriteCatalog[name]?.key];
+  portrait.setAttribute("aria-label", "Retrato de " + name);
+  g.clearRect(0, 0, portrait.width, portrait.height);
+  g.imageSmoothingEnabled = false;
+  if (img && img.complete && img.naturalWidth) {
+    const scale = Math.min(portrait.width / img.naturalWidth, portrait.height / img.naturalHeight);
+    const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+    g.drawImage(img, (portrait.width - w) / 2, (portrait.height - h) / 2, w, h);
+  } else {
+    g.fillStyle = "#f6e4bd"; g.font = "14px monospace"; g.textAlign = "center";
+    g.fillText("Imagen no disponible", portrait.width / 2, portrait.height / 2);
+  }
+}
+
 function talk(i) {
   if (!started || modal || battleActive || !Number.isInteger(i) || i < -1 || i >= data.length) return;
   hoveredNpc = i;
@@ -142,6 +172,7 @@ function talk(i) {
   modal = true;
   $("modal").style.display = "flex";
   $("actions").replaceChildren();
+  showPortrait(i);
   if (i === -1) {
     $("npcTitle").textContent = "🍺 Pere · Tabernero";
     $("npcLine").textContent =

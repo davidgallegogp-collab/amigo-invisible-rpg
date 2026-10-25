@@ -1,5 +1,5 @@
 "use strict";
-// Datos originales: 16 personajes, clases y posiciones de la taberna.
+// Datos originales: 15 personajes, clases y posiciones de la taberna.
 const data = [
   [
     "David",
@@ -31,7 +31,6 @@ const data = [
     "Golpetazo con tubería de PVC",
   ],
   ["María", "Clérigo", "Tú, chavales, ¿jugamos al Gang Beasts?", "¡MANUEL!"],
-  ["Martín", "Guerrero", "¿Dos doses o dos doses?", "FP de jardinería"],
   [
     "Óscar",
     "Mago",
@@ -68,11 +67,11 @@ const colors = {
 };
 // Posiciones asociadas al nombre: eliminar/reordenar data no desplaza a otro NPC.
 const characterPositions = {
-  David: [80, 210], Noelia: [225, 210], Jordux: [370, 210],
-  Pablo: [515, 210], Villa: [660, 210], Jesús: [805, 210],
-  Carlos: [96, 375], Lucía: [270, 375], Manu: [444, 375],
-  María: [618, 375], Martín: [792, 375],
-  Óscar: [96, 540], Lobato: [246, 540], Guarriadna: [396, 540],
-  Ari: [546, 540], Alba: [696, 540],
+  David: [232, 285], Noelia: [340, 285], Jordux: [448, 285],
+  Pablo: [556, 285], Villa: [664, 285],
+  Jesús: [232, 390], Carlos: [340, 390], Lucía: [448, 390],
+  Manu: [556, 390], María: [664, 390],
+  Óscar: [232, 495], Lobato: [340, 495], Guarriadna: [448, 495],
+  Ari: [556, 495], Alba: [664, 495],
 };
 const positions = data.map(([name]) => characterPositions[name]);

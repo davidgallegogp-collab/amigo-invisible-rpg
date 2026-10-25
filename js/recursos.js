@@ -20,13 +20,14 @@ const heroSpriteCatalog = {
   "Lucía": { key: "lucia", version: "9317bb42f93a", flip: false },
   "Manu": { key: "manu", version: "0acf95534b4b", flip: false },
   "María": { key: "maria", version: "6cc24781804e", flip: false },
-  "Martín": { key: "martin", version: "30f95e1347c0", flip: false },
   "Óscar": { key: "oscar", version: "39dd8a19f79a", flip: false },
   "Lobato": { key: "lobato", version: "1b1f100a21c4", flip: false },
   "Guarriadna": { key: "guarriadna", version: "1666a47f1778", flip: false },
   "Ari": { key: "ari", version: "b29c5971eb8e", flip: false },
   "Alba": { key: "alba", version: "b24d63323d6a", flip: false },
 };
+const tavernArt = {};
+const tavernCatalog = {"pere": "74c0d782e5ec", "tavern_bg": "b5ce20d590f9"};
 const heroArt = {};
 const enemyArt = {};
 const failedSprites = [];
@@ -39,6 +40,8 @@ function cargarRecursos() {
   $("start").disabled = true;
   return Promise.all(
     [
+      ...Object.entries(tavernCatalog).map(([key, version]) =>
+        ({ key, file: key, version, folder: "taberna", cache: tavernArt })),
       ...Object.entries(spriteCatalog).map(([key, { file, version }]) =>
         ({ key, file, version, folder: "enemigos", cache: enemyArt })),
       ...Object.values(heroSpriteCatalog).map(({ key, version }) =>
@@ -64,8 +67,8 @@ function cargarRecursos() {
     assetStatus.textContent = failedSprites.length
       ? "No se pudieron cargar: " +
         failedSprites.join(", ") +
-        ". Comprueba las carpetas assets/enemigos y assets/personajes. Se usarán dibujos de reserva."
-      : "Ilustraciones listas · 6 enemigos y 16 aventureros";
+        ". Comprueba las carpetas assets/enemigos, assets/personajes y assets/taberna. Se usarán dibujos de reserva."
+      : "Ilustraciones listas · 6 enemigos y 15 aventureros · Taberna y Pere";
     if (failedSprites.length) {
       const warning = assetStatus.cloneNode(true);
       warning.id = "battleAssetStatus";
