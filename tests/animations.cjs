@@ -17,7 +17,7 @@ function harness(baseline = false) {
       translate(x,y){this.tx+=x;this.ty+=y},
       drawImage(img,...args){draws.push({src:img.src,args,alpha:this.globalAlpha,x:this.tx,y:this.ty})},
     };
-    for(const key of ['fillRect','beginPath','ellipse','fill','fillText','moveTo','lineTo','scale'])g[key]=()=>{};
+    for(const key of ['fillRect','strokeRect','beginPath','ellipse','fill','fillText','moveTo','lineTo','scale'])g[key]=()=>{};
     return g;
   };
   function element(){return {children:[],style:{},dataset:{},events:{},value:'0',textContent:'',
@@ -146,14 +146,14 @@ old.click('battleActions','🎁');fresh.click('battleActions','🎁');assert.equ
 assert(fresh.elements.get('battleLog').textContent.includes('Has completado'));
 fresh.click('battleActions','🍺');assert.equal(fresh.run('battleActive'),false);
 console.log('PASS reglas idénticas: 16 habilidades, combo, ambas fases II, tres danzas, derrota/reintento, tres encuentros y cofre (PV ampliados en simulación)');
-// Eventos reales de main.js sobre DOM simulado: teclado, pad y reclutamiento.
+// Interacción estática: diálogos y reclutamiento, sin movimiento.
 const ui=harness();ui.elements.get('start').onclick();
-ui.listeners.keydown({key:'ArrowRight',preventDefault(){}});ui.run('render()');assert(ui.run('player.x')>449);
-ui.listeners.keyup({key:'ArrowRight'});assert.equal(ui.run('pressed.size'),0);
-for(const pad of ui.pads){pad.events.pointerdown({preventDefault(){},pointerId:1});assert(ui.run(`pressed.has('${pad.dataset.dir}')`));pad.events.pointercancel();assert.equal(ui.run('pressed.size'),0)}
-for(const i of [1,6]){ui.run(`player={x:positions[${i}][0],y:positions[${i}][1]+35};talk()`);ui.click('actions','➕')}
-assert.equal(ui.run('party.length'),2);
-console.log('PASS exploración, teclado, cancelación táctil y reclutamiento en DOM simulado');
+assert.equal(ui.elements.get('dungeon').disabled,true);
+for(const i of [1,6]){ui.run(`talk(${i})`);ui.click('actions','➕')}
+assert.equal(ui.run('party.length'),2);assert.equal(ui.elements.get('dungeon').disabled,false);
+ui.run('talk(1)');assert(!ui.elements.get('actions').children.some(b=>b.textContent.startsWith('➕')));ui.click('actions','Cerrar');
+ui.elements.get('dungeon').onclick();assert.equal(ui.run('battleActive'),true);
+console.log('PASS diálogos por selección, sin duplicados, reclutamiento y botón de mazmorra');
 console.log('AVISO: esta suite no sustituye una revisión visual ni un navegador/dispositivo real.');
 
 }

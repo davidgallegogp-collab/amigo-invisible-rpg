@@ -8,7 +8,7 @@ const root=path.resolve(__dirname,'..'),base='f602fc48d723d57c15e1ea4cf2a565f5b2
 const original=vm.createContext({});vm.runInContext(execFileSync('git',['show',base+':js/personajes.js'],{cwd:root,encoding:'utf8'}),original);
 const expected=JSON.parse(vm.runInContext('JSON.stringify(data.filter(p=>!["Juan","Fran"].includes(p[0])))',original));
 expected.find(p=>p[0]==='Alba')[2]='¿Sale piti?';
-for(const file of ['js/animaciones.js','js/enemigos.js','js/taberna.js','js/main.js','js/estado.js','css/styles.css',...fs.readdirSync(path.join(root,'assets/enemigos')).map(n=>'assets/enemigos/'+n)]){
+for(const file of ['js/animaciones.js','js/enemigos.js','js/estado.js',...fs.readdirSync(path.join(root,'assets/enemigos')).map(n=>'assets/enemigos/'+n)]){
  assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})),file+' ha cambiado');
 }
 const server=http.createServer((req,res)=>{
@@ -36,17 +36,11 @@ const server=http.createServer((req,res)=>{
    assert(!c.flip,'orientación izquierda original');
   }
   assert(keys.size===16,'IDs únicos');
-  // Alcanzabilidad real en la malla de colisiones desde la entrada.
-  const queue=[[448,552]],seen=new Set(['448,552']);
-  for(let q=0;q<queue.length;q++)for(const [dx,dy] of [[4,0],[-4,0],[0,4],[0,-4]]){
-   const x=queue[q][0]+dx,y=queue[q][1]+dy,k=x+','+y;
-   if(!seen.has(k)&&!collides(x,y)){seen.add(k);queue.push([x,y])}
-  }
+  // Interacción por ID y selección directa, sin requisitos de proximidad.
   for(let protagonist=0;protagonist<16;protagonist++){
    hero=protagonist;party=[];
    for(let i=0;i<16;i++)if(i!==hero){
-    const approach=queue.find(([x,y])=>Math.hypot(x-positions[i][0],y-positions[i][1])<20);
-    assert(approach,'NPC inaccesible '+data[i][0]);player={x:approach[0],y:approach[1]};close();talk();
+    close();talk(i);
     assert($('npcTitle').textContent.startsWith(data[i][0]),'NPC confundido');
     $('actions').querySelector('button').click();assert(party.includes(i),'reclutamiento');party=[];close();
    }

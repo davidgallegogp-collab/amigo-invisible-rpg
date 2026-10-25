@@ -62,37 +62,18 @@ async function golden(page){
    assert.equal(await page.locator('#pick option').count(),16);
    await page.selectOption('#pick','15');await page.locator('#start').click();
    assert.equal(await page.evaluate(()=>data[hero][0]),'Alba');
-   if(!mobile){
-    for(const [key,axis,sign] of [['ArrowRight','x',1],['a','x',-1],['ArrowUp','y',-1],['s','y',1]]){
-     const old=await page.evaluate(axis=>player[axis],axis);
-     await page.keyboard.down(key);await page.waitForFunction(({axis,sign,old})=>(player[axis]-old)*sign>3,{axis,sign,old});await page.keyboard.up(key);
-     assert.equal(await page.evaluate(()=>pressed.size),0);
-    }
-   }else{
-    const cdp=await context.newCDPSession(page);
-    for(const [dir,axis,sign] of [['right','x',1],['left','x',-1],['up','y',-1],['down','y',1]]){
-     const b=await page.locator('[data-dir="'+dir+'"]').boundingBox();const old=await page.evaluate(axis=>player[axis],axis);
-     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+b.width/2,y:b.y+b.height/2}]});
-     await page.waitForFunction(({axis,sign,old})=>(player[axis]-old)*sign>3,{axis,sign,old});
-     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-     assert.equal(await page.evaluate(()=>pressed.size),0);
-    }
-   }
-   await page.evaluate(()=>{player={x:562,y:140}});
-   if(mobile)await page.locator('#talk').tap();else await page.keyboard.press('e');
-   assert((await page.locator('#npcTitle').innerText()).includes('Pere'));
+   const clickNpc=async i=>{
+    await page.locator('#game').scrollIntoViewIfNeeded();
+    const point=await page.evaluate(i=>{const r=canvas.getBoundingClientRect(),b=npcBounds(i);return {x:r.left+canvas.clientLeft+(b.x+b.w/2)*(r.width-2*canvas.clientLeft)/canvas.width,y:r.top+canvas.clientTop+(b.y+b.h/2)*(r.height-2*canvas.clientTop)/canvas.height}},i);
+    if(mobile)await page.touchscreen.tap(point.x,point.y);else await page.mouse.click(point.x,point.y);
+   };
+   assert(await page.locator('#dungeon').isDisabled());
+   await clickNpc(-1);assert((await page.locator('#npcTitle').innerText()).includes('Pere'));
    await page.getByRole('button',{name:'Cerrar',exact:true}).click();
-   for(const i of [0,6]){
-    await page.evaluate(i=>{player={x:positions[i][0],y:positions[i][1]+35}},i);
-    if(mobile){
-     const b=await page.locator('#game').boundingBox();const p=await page.evaluate(()=>({...player}));
-     await page.touchscreen.tap(b.x+p.x*b.width/896,b.y+p.y*b.height/608);
-    }else await page.keyboard.press('e');
-    await page.getByRole('button',{name:'➕ Reclutar'}).click();
-   }
+   for(const i of [0,6]){await clickNpc(i);await page.getByRole('button',{name:'➕ Reclutar'}).click()}
    assert.equal(await page.evaluate(()=>party.length),2);
-   await page.evaluate(()=>{player={x:720,y:490}});
-   await page.keyboard.down('ArrowRight');await page.waitForFunction(()=>battleActive);await page.keyboard.up('ArrowRight');
+   await page.getByRole('button',{name:'⚔ Entrar en la mazmorra',exact:true}).click();
+   assert(await page.evaluate(()=>battleActive));
    await page.evaluate(()=>{combatants.forEach(p=>{p.hp=10000;p.maxhp=10000});Math.random=()=>0;window.seen=new Set();const draw=bctx.drawImage.bind(bctx);bctx.drawImage=(img,...a)=>{if(img.src&&img.src.includes("/enemigos/"))window.seen.add(new URL(img.src).pathname.split('/').pop());draw(img,...a)}});
    for(let st=0;st<3;st++){
     await page.evaluate(()=>battleDraw());

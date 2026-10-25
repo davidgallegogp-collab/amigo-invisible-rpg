@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {execFileSync}=require('node:child_process');
 const {harness}=require('./animations.cjs');
 const root=path.resolve(__dirname,'..'),base='da7b5fc28a98888ba49737fdee5344b6cfb30b08';
-for(const file of ['js/animaciones.js','js/enemigos.js','js/personajes.js','js/recursos.js','js/taberna.js','js/estado.js','js/main.js','css/styles.css',...['enemigos','personajes'].flatMap(dir=>fs.readdirSync(path.join(root,'assets',dir)).map(n=>'assets/'+dir+'/'+n))]){
+for(const file of ['js/animaciones.js','js/enemigos.js','js/recursos.js','js/estado.js',...['enemigos','personajes'].flatMap(dir=>fs.readdirSync(path.join(root,'assets',dir)).map(n=>'assets/'+dir+'/'+n))]){
  assert(fs.readFileSync(path.join(root,file)).equals(execFileSync('git',['show',base+':'+file],{cwd:root,maxBuffer:10e6})),file);
 }
 assert(!/setTimeout|setInterval|requestAnimationFrame/.test(fs.readFileSync(path.join(root,'js/animaciones-heroes.js'),'utf8')));
