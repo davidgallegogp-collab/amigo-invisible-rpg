@@ -5,11 +5,9 @@ const root=path.resolve(__dirname,'..'),base='e873b35fbcce5b5659f30ea5ec02515d39
 const oldFile=f=>execFileSync('git',['show',base+':'+f],{cwd:root,maxBuffer:20e6});
 const names=['combate_1_mirucha','combate_2_nacho_arturo','combate_3_jefe_final'];
 const label='Te llevo al Clot y te enseño los pajaros';
-// Todo combate salvo el despacho del fondo sigue idéntico, incluidos los dibujos de reserva.
-const combat=fs.readFileSync(path.join(root,'js/combate.js'),'utf8');
-assert.equal(combat.replace(/function battleBackdrop\(g\) \{[\s\S]*?function battleBackdropFallback\(g\) \{/,'function battleBackdrop(g) {'),oldFile('js/combate.js').toString());
+// La protección exacta de las reglas de combate se verifica en interface.cjs.
 assert.equal(fs.readFileSync(path.join(root,'js/personajes.js'),'utf8').replace('"'+label+'",','"Yo juego eminencias",'),oldFile('js/personajes.js').toString());
-for(const f of ['js/animaciones.js','js/animaciones-heroes.js','js/enemigos.js','js/taberna.js','js/main.js','css/styles.css',...['personajes','enemigos','taberna'].flatMap(d=>fs.readdirSync(path.join(root,'assets',d)).map(n=>'assets/'+d+'/'+n))])assert(fs.readFileSync(path.join(root,f)).equals(oldFile(f)),f);
+for(const f of ['js/animaciones.js','js/animaciones-heroes.js','js/enemigos.js',...['personajes','enemigos','taberna'].flatMap(d=>fs.readdirSync(path.join(root,'assets',d)).map(n=>'assets/'+d+'/'+n))])assert(fs.readFileSync(path.join(root,f)).equals(oldFile(f)),f);
 for(const n of names){const b=fs.readFileSync(path.join(root,'assets/combates',n+'.png'));assert.equal(b.readUInt32BE(16),768);assert.equal(b.readUInt32BE(20),355)}
 // Diferencial real de Óscar contra la base, normalizando solo el nombre visible.
 const old=harness(),fresh=harness();old.run(oldFile('js/combate.js').toString());old.run('data.find(p=>p[0]==="Óscar")[3]="Yo juego eminencias"');
@@ -26,8 +24,8 @@ for(const mobile of [false,true]){
 const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1100,height:850},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});const page=await context.newPage(),errors=[],bad=[],requests=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)bad.push(r.url())});page.on('request',r=>requests.push(r.url()));
 await page.goto('http://127.0.0.1:'+server.address().port+'/amigo-invisible-rpg/');await page.evaluate(()=>enemyArtReady);
-assert.equal(await page.title(),'La Taberna del Amigo Invisible v1.0.2');
-for(const f of ['personajes','recursos','combate'])assert.equal(await page.locator('script[src^="js/'+f+'.js"]').getAttribute('src'),'js/'+f+'.js?v=1.0.2');
+assert.equal(await page.title(),'La Taberna del Amigo Invisible v1.1');
+for(const f of ['personajes','recursos','combate'])assert.equal(await page.locator('script[src^="js/'+f+'.js"]').getAttribute('src'),'js/'+f+'.js?v='+(f==='combate'?'1.1':'1.0.2'));
 await page.selectOption('#pick',String(await page.evaluate(()=>data.findIndex(p=>p[0]==='Óscar'))));await page.locator('#start').click();await page.evaluate(()=>talk(hero));assert((await page.locator('#npcDetail').innerText()).includes(label));await page.getByRole('button',{name:'Cerrar',exact:true}).click();
 await page.evaluate(()=>{party=[6,2];update();startBattle()});assert((await page.getByRole('button',{name:/^✨/}).innerText()).includes(label));
 await page.getByRole('button',{name:/^✨/}).click();assert((await page.locator('#battleLog').innerText()).includes(label));

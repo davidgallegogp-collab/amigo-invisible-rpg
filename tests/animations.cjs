@@ -42,7 +42,7 @@ function harness(baseline = false) {
   const run = code => vm.runInContext(code,sandbox);
   const html = fs.readFileSync(path.join(root,'index.html'),'utf8');
   for(const [,file] of html.matchAll(/src="(js\/[^?]+)\?/g)) {
-    const source=baseline&&!['js/animaciones.js','js/animaciones-heroes.js'].includes(file)
+    const source=baseline&&!['js/animaciones.js','js/animaciones-heroes.js','js/interfaz.js'].includes(file)
       ?execFileSync('git',['show',base+':'+file],{cwd:root,encoding:'utf8'})
       :fs.readFileSync(path.join(root,file),'utf8');
     vm.runInContext(source,sandbox,{filename:file});
