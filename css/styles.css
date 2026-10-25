@@ -130,7 +130,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid #ffe070; outline
   padding: 12px;
 }
 #dialogbox {
-  width: min(450px, 100%);
+  width: min(720px, 100%);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   background: #302533;
   border: 3px solid #b28b57;
   border-radius: 12px;
@@ -147,4 +149,15 @@ body:not(.started) #game,
 body:not(.started) #tavernActions,
 body:not(.started) #info {
   visibility: hidden;
+}
+
+#dialogContent { display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); gap: 20px; align-items: center; }
+#npcPortrait { width: 100%; height: auto; image-rendering: pixelated; }
+#npcText { min-width: 0; overflow-wrap: anywhere; }
+#npcText h2 { margin-top: 0; }
+#actions { display: flex; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 520px) {
+  #dialogbox { padding: 12px; }
+  #dialogContent { grid-template-columns: minmax(0, 112px) minmax(0, 1fr); gap: 12px; }
+  #npcText h2 { font-size: 18px; }
 }
