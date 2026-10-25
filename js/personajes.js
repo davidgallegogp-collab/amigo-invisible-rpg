@@ -68,11 +68,11 @@ const colors = {
 };
 // Posiciones asociadas al nombre: eliminar/reordenar data no desplaza a otro NPC.
 const characterPositions = {
-  David: [94, 178], Noelia: [210, 178], Jordux: [335, 178],
-  Pablo: [455, 178], Villa: [575, 178], Jesús: [695, 178],
-  Carlos: [95, 333], Lucía: [245, 333], Manu: [395, 333],
-  María: [545, 333], Martín: [695, 333],
-  Óscar: [96, 480], Lobato: [246, 480], Guarriadna: [396, 480],
-  Ari: [546, 480], Alba: [696, 480],
+  David: [80, 210], Noelia: [225, 210], Jordux: [370, 210],
+  Pablo: [515, 210], Villa: [660, 210], Jesús: [805, 210],
+  Carlos: [96, 375], Lucía: [270, 375], Manu: [444, 375],
+  María: [618, 375], Martín: [792, 375],
+  Óscar: [96, 540], Lobato: [246, 540], Guarriadna: [396, 540],
+  Ari: [546, 540], Alba: [696, 540],
 };
 const positions = data.map(([name]) => characterPositions[name]);

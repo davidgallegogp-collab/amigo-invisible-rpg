@@ -1,5 +1,5 @@
 "use strict";
-// Exploración, dibujo, colisiones y diálogos de la taberna.
+// Taberna estática: dibujo a demanda e interacción directa por personaje.
 function block(x, y, w, h, c) {
   ctx.fillStyle = c;
   ctx.fillRect(Math.round(x), Math.round(y), w, h);
@@ -60,64 +60,52 @@ function sprite(x, y, cls, name, main = false) {
   text(name, x, y - 33, main ? "#ffe070" : "#f8edcf", 11);
 }
 
-function collides(x, y) {
-  if (x < 22 || x > 874 || y < 121 || y > 575) return true;
-  for (let row = 0; row < 2; row++)
-    for (let col = 0; col < 3; col++) {
-      let a = 154 + col * 266,
-        b = 253 + row * 165;
-      if (Math.abs(x - a) < 69 && Math.abs(y - b) < 47) return true;
-    }
-  if (x > 760 && y > 504) return true;
-  return false;
+let hoveredNpc = null;
+const pereSpot = { x: 465, y: 55 };
+function npcBounds(i) {
+  const [x, y] = i === -1 ? [pereSpot.x, pereSpot.y] : positions[i];
+  return { x: x - 66, y: y - (i === -1 ? 48 : 108), w: 132, h: i === -1 ? 84 : 140 };
 }
-
+function npcAt(x, y) {
+  for (const i of [-1, ...data.map((_, i) => i)]) {
+    const b = npcBounds(i);
+    if (x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) return i;
+  }
+  return null;
+}
+function canvasPoint(event) {
+  const r = canvas.getBoundingClientRect();
+  // El borde CSS no pertenece a los píxeles del Canvas.
+  return {
+    x: (event.clientX - r.left - canvas.clientLeft) * canvas.width / (r.width - 2 * canvas.clientLeft),
+    y: (event.clientY - r.top - canvas.clientTop) * canvas.height / (r.height - 2 * canvas.clientTop),
+  };
+}
 function render() {
   furniture();
   data.forEach((p, i) => {
-    if (i === hero || party.includes(i)) return;
-    let [x, y] = positions[i];
-    sprite(x, y, p[1], p[0]);
-  });
-  sprite(562, 105, "Guerrero", "Pere 🍺");
-  party.forEach((idx, i) => {
-    const target =
-      last[Math.min(last.length - 1, Math.round((i + 1) * 13))] || player;
-    sprite(target.x, target.y, data[idx][1], data[idx][0]);
-  });
-  sprite(player.x, player.y, data[hero][1], data[hero][0] + " (TÚ)", true);
-  if (started && !modal && !battleActive) {
-    let speed = 2.6,
-      dx = 0,
-      dy = 0;
-    if (pressed.has("left")) dx--;
-    if (pressed.has("right")) dx++;
-    if (pressed.has("up")) dy--;
-    if (pressed.has("down")) dy++;
-    if (dx || dy) {
-      let len = Math.hypot(dx, dy);
-      dx = (dx / len) * speed;
-      dy = (dy / len) * speed;
-      let nx = player.x + dx,
-        ny = player.y + dy;
-      if (!collides(nx, player.y)) player.x = nx;
-      if (!collides(player.x, ny)) player.y = ny;
-      last.unshift({ ...player });
-      if (last.length > 50) last.pop();
-      if (player.x > 706 && player.y > 470 && party.length === 2) startBattle();
+    const [x, y] = positions[i], b = npcBounds(i);
+    const member = i === hero || party.includes(i);
+    if (hoveredNpc === i || member) {
+      ctx.strokeStyle = i === hero ? "#ffe070" : member ? "#95dfa1" : "#f4d9ac";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4);
     }
+    const img = heroArt[heroSpriteCatalog[p[0]]?.key];
+    if (img && img.complete && img.naturalWidth) {
+      const w = 80, h = w * img.naturalHeight / img.naturalWidth;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, x - w / 2, y - h, w, h);
+    } else sprite(x, y - 24, p[1], ""); // Reserva ya existente, solo ante un fallo.
+    text(p[0], x, y + 13, "#fff1d7", 14);
+    if (member) text(i === hero ? "★ TÚ" : "✓ EQUIPO", x, y + 27, i === hero ? "#ffe070" : "#95dfa1", 11);
+  });
+  if (hoveredNpc === -1) {
+    const b = npcBounds(-1);
+    ctx.strokeStyle = "#f4d9ac"; ctx.lineWidth = 2;
+    ctx.strokeRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4);
   }
-  requestAnimationFrame(render);
-}
-
-function nearest() {
-  let list = data
-    .map((p, i) => ({ i, x: positions[i][0], y: positions[i][1], name: p[0] }))
-    .filter((n) => n.i !== hero && !party.includes(n.i));
-  list.push({ i: -1, x: 562, y: 130, name: "Pere" });
-  return list
-    .map((n) => ({ ...n, d: Math.hypot(n.x - player.x, n.y - player.y) }))
-    .sort((a, b) => a.d - b.d)[0];
+  sprite(pereSpot.x, pereSpot.y, "Guerrero", "Pere 🍺");
 }
 
 function action(label, fn) {
@@ -130,6 +118,8 @@ function action(label, fn) {
 function close() {
   modal = false;
   $("modal").style.display = "none";
+  hoveredNpc = null;
+  render();
 }
 
 function update() {
@@ -141,41 +131,41 @@ function update() {
     (party.length === 2
       ? " · ¡Listo!"
       : " · " + (2 - party.length) + " huecos libres");
+  $("dungeon").disabled = !started || party.length !== 2;
+  render();
 }
 
-function talk() {
-  if (!started || modal) return;
-  const n = nearest();
-  if (!n || n.d > 76) {
-    $("message").textContent =
-      "Acércate a alguien para hablar (distancia corta).";
-    return;
-  }
+function talk(i) {
+  if (!started || modal || battleActive || !Number.isInteger(i) || i < -1 || i >= data.length) return;
+  hoveredNpc = i;
+  render();
   modal = true;
   $("modal").style.display = "flex";
   $("actions").replaceChildren();
-  if (n.i === -1) {
+  if (i === -1) {
     $("npcTitle").textContent = "🍺 Pere · Tabernero";
     $("npcLine").textContent =
       "«Bienvenidos a mi taberna, panchitos. ¡Hoy es mi día libre!»";
     $("npcDetail").textContent =
       party.length === 2
-        ? "Ya tienes un equipo completo. Acércate a la salida de la esquina inferior derecha para combatir."
-        : "Busca dos compañeros antes de partir a la mazmorra.";
+        ? "Ya tienes un equipo completo. Pulsa «⚔ Entrar en la mazmorra» para combatir."
+        : "Pulsa sobre dos aventureros para reclutarlos antes de partir a la mazmorra.";
     action("Cerrar", close);
     return;
   }
-  const p = data[n.i];
+  const p = data[i];
   $("npcTitle").textContent = p[0] + " · " + p[1];
   $("npcLine").textContent = "«" + p[2] + "»";
   $("npcDetail").textContent = "Habilidad especial: " + p[3];
-  if (party.length < 2)
+  if (i !== hero && !party.includes(i) && party.length < 2)
     action("➕ Reclutar", () => {
-      party.push(n.i);
+      if (!started || battleActive || i === hero || party.includes(i) || party.length >= 2) return;
+      party.push(i);
       update();
       $("message").textContent = p[0] + " se une a tu equipo.";
       close();
     });
-  else $("npcDetail").textContent += " · Tu equipo ya está completo.";
+  else $("npcDetail").textContent += i === hero ? " · Este es tu protagonista."
+    : party.includes(i) ? " · Ya forma parte del equipo." : " · Tu equipo ya está completo.";
   action("Cerrar", close);
 }
