@@ -1,0 +1,4 @@
+project_id = "amigo-invisible-rpg"
+[functions.reveal-draw]
+# El enlace personal autentica la consulta dentro del handler; no se usa Supabase Auth.
+verify_jwt = false
