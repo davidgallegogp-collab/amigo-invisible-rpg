@@ -1,62 +1,31 @@
 "use strict";
+// Configuración pública: cambiar solo esta URL para sustituir el formulario.
+const REGISTRO_PERE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfb3NrSLeJ76OhQAHorPJQi0pUwkEg8DkeXdNSZNyceNW59qg/viewform?usp=sharing&ouid=104747675665075751133";
 const FinalScene = (() => {
-  let dialog, controller, generation = 0, animationDone = false, outcome;
+  let dialog, opening = false;
   const q = id => dialog.querySelector('#' + id);
-  function showResult() {
-    if (!animationDone || !outcome) return;
-    q('destinySkip').hidden = true;
+  function reveal() {
+    if (!opening || !dialog.open) return;
+    opening = false;
+    q('destinyChest').className = 'destiny-chest opened';
     q('destinyChest').hidden = true;
-    q('destinyOpen').disabled = false;
-    q('destinyOpen').textContent = 'Consultar de nuevo';
-    if (outcome.error) {
-      q('destinyStatus').textContent = outcome.error;
-      q('destinyOpen').textContent = 'Reintentar consulta';
-      return;
-    }
-    q('destinyTitle').textContent = 'TU AMIGO INVISIBLE ES…';
-    q('destinyName').textContent = outcome.name;
-    q('destinyResult').hidden = false;
-    q('destinyStatus').textContent = 'Los dioses del RNG han hablado. No se admiten devoluciones, lloros ni reclamaciones al tabernero.';
-    const entry = Object.values(heroSpriteCatalog).find(e => e.key === outcome.spriteKey);
-    const img = entry && heroArt[entry.key], canvas = q('destinyPortrait');
-    canvas.hidden = !(img && img.complete && img.naturalWidth);
-    q('destinyNoPortrait').hidden = !canvas.hidden;
-    if (!canvas.hidden) {
-      const g = canvas.getContext('2d'); g.clearRect(0, 0, canvas.width, canvas.height);
-      g.imageSmoothingEnabled = false;
-      const scale = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-      const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
-      g.drawImage(img, Math.round((canvas.width-w)/2), Math.round((canvas.height-h)/2), Math.round(w), Math.round(h));
-      canvas.setAttribute('aria-label', 'Retrato de ' + outcome.name);
-    }
-    q('destinyName').focus();
-  }
-  function skip() {
-    animationDone = true;
-    q('destinyChest').classList.remove('opening');
-    q('destinyChest').classList.add('opened');
     q('destinySkip').hidden = true;
-    showResult();
+    q('destinyOpen').hidden = true;
+    q('destinyStatus').hidden = true;
+    q('destinyTitle').textContent = '¡HAS ENCONTRADO EL REGISTRO SECRETO DE PERE!';
+    q('destinyResult').hidden = false;
+    q('destinyForm').hidden = false;
+    q('destinyTitle').focus();
   }
-  async function open() {
-    controller?.abort(); controller = new AbortController();
-    const attempt = ++generation;
-    outcome = null; animationDone = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    q('destinyTitle').textContent = 'EL COFRE DEL DESTINO';
-    q('destinyName').textContent = ''; q('destinyResult').hidden = true;
-    q('destinyPortrait').getContext('2d').clearRect(0,0,240,280);
-    q('destinyStatus').textContent = 'Consultando tu invitación…';
-    q('destinyOpen').disabled = true; q('destinySkip').hidden = animationDone;
-    q('destinyChest').hidden = false;
-    q('destinyChest').className = animationDone ? 'destiny-chest opened' : 'destiny-chest opening';
-    try { const result = await Sorteo.consult(controller.signal); if (attempt === generation) outcome = result; }
-    catch (error) { if (attempt === generation) outcome = {error:error.message}; }
-    if (attempt === generation && dialog.open) showResult();
-  }
-  function cleanup() {
-    generation++; controller?.abort(); outcome = null;
-    q('destinyName').textContent = '';
-    q('destinyPortrait').getContext('2d').clearRect(0,0,240,280);
+  function open() {
+    if (opening) return;
+    opening = true;
+    q('destinyOpen').disabled = true;
+    q('destinyStatus').textContent = 'El cofre del destino se abre…';
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    q('destinySkip').hidden = reduced;
+    q('destinyChest').className = reduced ? 'destiny-chest opened' : 'destiny-chest opening';
+    if (reduced) reveal();
   }
   function show(victory = false) {
     if (!dialog) {
@@ -64,35 +33,37 @@ const FinalScene = (() => {
       dialog.setAttribute('aria-labelledby', 'destinyTitle');
       dialog.innerHTML = `<div class="destiny-window">
         <p id="destinyEyebrow" class="eyebrow">EPÍLOGO / LA RECOMPENSA</p>
-        <h2 id="destinyTitle">EL COFRE DEL DESTINO</h2>
+        <h2 id="destinyTitle" tabindex="-1">EL COFRE DEL DESTINO</h2>
         <div id="destinyChest" class="destiny-chest" aria-hidden="true"><div class="chest-rays"></div><div class="chest-lid"></div><div class="chest-body"></div><div class="chest-lock"></div><span class="chest-spark">✦</span></div>
-        <div id="destinyResult" hidden><h3 id="destinyName" tabindex="-1"></h3><canvas id="destinyPortrait" width="240" height="280" role="img"></canvas><p id="destinyNoPortrait" hidden>✦ Un destino único, sin retrato asignado ✦</p></div>
-        <p id="destinyStatus" role="status">Tu enlace personal guarda el destino, elijas al héroe que elijas.</p>
-        <div class="destiny-actions"><button id="destinyOpen">🎁 Abrir cofre</button><button id="destinySkip" hidden>Omitir animación</button><button id="destinyBack">🍺 Volver a la taberna</button></div>
+        <div id="destinyResult" hidden>
+          <p>¡Enhorabuena, aventurero! Has sobrevivido a Mirucha, a los guardianes y hasta a Quico.</p>
+          <p>Ahora solo queda una última misión: dejar tu nombre y correo electrónico para participar en el amigo invisible.</p>
+          <p>Pere se encargará de que el destino haga el resto.</p>
+        </div>
+        <p id="destinyStatus" role="status"></p>
+        <div class="destiny-actions"><button id="destinyOpen">🎁 Abrir cofre</button><button id="destinySkip" hidden>Omitir animación</button><a id="destinyForm" target="_blank" rel="noopener noreferrer" hidden>✉ DEJAR MI CORREO</a><button id="destinyBack">🍺 Volver a la taberna</button></div>
       </div>`;
       document.body.appendChild(dialog);
+      q('destinyForm').href = REGISTRO_PERE_URL;
       q('destinyOpen').addEventListener('click', open);
-      q('destinySkip').addEventListener('click', skip);
-      q('destinyChest').addEventListener('animationend', e => { if(e.animationName === 'destiny-lid') skip(); });
+      q('destinySkip').addEventListener('click', reveal);
+      q('destinyChest').addEventListener('animationend', e => { if (e.animationName === 'destiny-lid') reveal(); });
       q('destinyBack').addEventListener('click', () => { dialog.close(); leaveDungeon(); });
-      dialog.addEventListener('close', cleanup);
-      // Escape cierra la escena y deja accesible el botón del cofre en el combate.
+      dialog.addEventListener('close', () => { opening = false; q('destinyChest').className = 'destiny-chest'; });
+      // Escape conserva el cierre nativo del diálogo y el acceso al cofre del combate.
     }
     if (dialog.open) return;
+    opening = false;
     q('destinyTitle').textContent = 'EL COFRE DEL DESTINO';
     q('destinyChest').hidden = false; q('destinyChest').className = 'destiny-chest';
-    q('destinyResult').hidden = true; q('destinySkip').hidden = true;
-    q('destinyOpen').disabled = false; q('destinyOpen').textContent = '🎁 Abrir cofre';
-    q('destinyStatus').textContent = 'Tu enlace personal guarda el destino, elijas al héroe que elijas.';
+    q('destinyResult').hidden = true; q('destinyForm').hidden = true; q('destinySkip').hidden = true;
+    q('destinyOpen').hidden = false; q('destinyOpen').disabled = false;
+    q('destinyStatus').hidden = false;
+    q('destinyStatus').textContent = victory
+      ? 'Contra todo pronóstico, habéis derrotado a Quico y sus secuaces. Entre los restos del combate aparece un misterioso cofre…'
+      : 'Pere ha guardado una última misión en este cofre.';
     q('destinyEyebrow').textContent = victory ? '¡MISIÓN COMPLETADA!' : 'EPÍLOGO / LA RECOMPENSA';
-    if (victory) q('destinyStatus').textContent = 'Contra todo pronóstico, habéis derrotado a Quico y sus secuaces. Entre los restos del combate aparece un misterioso cofre…';
     dialog.showModal(); q('destinyOpen').focus();
   }
   return Object.freeze({ show });
 })();
-
-window.addEventListener("DOMContentLoaded", () => {
-  const button = document.getElementById("consultInvitation");
-  if (new URLSearchParams(location.hash.slice(1)).has("invitacion")) button.hidden = false;
-  button.addEventListener("click", () => FinalScene.show());
-});
