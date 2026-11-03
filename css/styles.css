@@ -115,3 +115,31 @@ body:not(.started) #game,body:not(.started) #tavernActions,body:not(.started) #i
 
 .enemy-summary { display:none; }
 @media(max-width:760px) { .enemy-summary { display:block; color:var(--muted); font-size:11px; line-height:1.8; margin-top:10px; padding:8px; border:1px solid #556587; background:#111c35; } }
+
+/* v1.2 — El cofre: composición original CSS, sin recursos ni bucles nuevos. */
+#destinyDialog { width:min(92vw,640px); max-height:90dvh; padding:0; color:#f5e8c9; background:#111c35; border:3px solid #b99755; box-shadow:0 0 0 3px #080f20,0 0 0 5px #75603b,0 24px 80px #000b; }
+#destinyDialog::backdrop { background:#060c1be6; }
+.destiny-window { padding:clamp(18px,4vw,36px); text-align:center; background:linear-gradient(#202f56,#111c35); }
+#destinyTitle { color:#f4d58b; font-size:clamp(20px,4vw,30px); letter-spacing:2px; }
+#destinyName { font-size:clamp(28px,7vw,42px); color:#f4d58b; margin:12px 0; overflow-wrap:anywhere; }
+#destinyPortrait { width:min(100%,200px); height:auto; image-rendering:pixelated; }
+#destinyResult { border-block:1px solid #b9975570; padding:12px; }
+#destinyNoPortrait { padding:30px 12px; color:#f4d58b; }
+#destinyStatus { line-height:1.65; min-height:4em; overflow-wrap:anywhere; }
+.destiny-actions { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+.destiny-actions button { min-height:48px; white-space:normal; }
+.destiny-chest { width:180px; height:150px; position:relative; margin:28px auto; }
+.chest-body { position:absolute; inset:65px 20px 15px; background:repeating-linear-gradient(0deg,#603d30 0 15px,#352c31 15px 19px); border:6px solid #b99755; box-shadow:inset 12px 0 #d7b66d,inset -12px 0 #d7b66d,0 7px #070f23; }
+.chest-lid { position:absolute; left:20px; top:35px; width:140px; height:38px; box-sizing:border-box; border:6px solid #d7b66d; background:#805338; z-index:2; transform-origin:bottom; }
+.chest-lock { position:absolute; top:68px; left:80px; width:20px; height:25px; background:#f4d58b; border:5px solid #88672f; z-index:3; }
+.chest-rays { position:absolute; inset:0; opacity:0; background:radial-gradient(ellipse,#fff1b5a0,transparent 65%); }
+.chest-spark { position:absolute; left:75px; top:0; color:#ffe8a3; font-size:32px; opacity:0; }
+.opening .chest-lid { animation:destiny-lid .9s steps(8,end) forwards; }
+.opening .chest-rays,.opened .chest-rays { opacity:1; }
+.opening .chest-spark { animation:destiny-spark .9s ease-out; }
+.opened .chest-lid { transform:translateY(-24px) rotate(-8deg); }
+.opened .chest-lock { opacity:0; }
+@keyframes destiny-lid { 0%,15%{transform:translateX(-2px)} 25%{transform:translateX(2px)} 100%{transform:translateY(-24px) rotate(-8deg)} }
+@keyframes destiny-spark { 0%{opacity:0;transform:translateY(50px)} 60%{opacity:1} 100%{opacity:0;transform:translateY(-20px)} }
+@media(prefers-reduced-motion:reduce) { .destiny-chest * { animation:none!important; } }
+#destinyDialog [hidden] { display:none!important; }
