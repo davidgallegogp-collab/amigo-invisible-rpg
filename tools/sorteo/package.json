@@ -1,0 +1,1 @@
+{"name":"taberna-sorteo-admin","private":true,"type":"module","engines":{"node":">=22"},"dependencies":{"postgres":"3.4.7"}}
