@@ -121,10 +121,7 @@ body:not(.started) #game,body:not(.started) #tavernActions,body:not(.started) #i
 #destinyDialog::backdrop { background:#060c1be6; }
 .destiny-window { padding:clamp(18px,4vw,36px); text-align:center; background:linear-gradient(#202f56,#111c35); }
 #destinyTitle { color:#f4d58b; font-size:clamp(20px,4vw,30px); letter-spacing:2px; }
-#destinyName { font-size:clamp(28px,7vw,42px); color:#f4d58b; margin:12px 0; overflow-wrap:anywhere; }
-#destinyPortrait { width:min(100%,200px); height:auto; image-rendering:pixelated; }
-#destinyResult { border-block:1px solid #b9975570; padding:12px; }
-#destinyNoPortrait { padding:30px 12px; color:#f4d58b; }
+#destinyResult { border-block:1px solid #b9975570; padding:12px; line-height:1.75; margin-bottom:24px; }
 #destinyStatus { line-height:1.65; min-height:4em; overflow-wrap:anywhere; }
 .destiny-actions { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
 .destiny-actions button { min-height:48px; white-space:normal; }
@@ -143,3 +140,9 @@ body:not(.started) #game,body:not(.started) #tavernActions,body:not(.started) #i
 @keyframes destiny-spark { 0%{opacity:0;transform:translateY(50px)} 60%{opacity:1} 100%{opacity:0;transform:translateY(-20px)} }
 @media(prefers-reduced-motion:reduce) { .destiny-chest * { animation:none!important; } }
 #destinyDialog [hidden] { display:none!important; }
+
+/* v1.2.1 — Enlace al registro externo; solo se navega al pulsarlo. */
+#destinyForm { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 18px; border:2px solid #f4d58b; background:#f4d58b; color:#111c35; font:inherit; font-weight:bold; line-height:1.5; text-decoration:none; box-shadow:inset 0 0 0 2px #111c35,2px 2px #050a16; }
+#destinyForm:hover { background:#ffe8b2; }
+#destinyForm:active { background:#d8b96f; }
+#destinyForm:focus-visible { outline:3px solid #f4d58b; outline-offset:4px; }
