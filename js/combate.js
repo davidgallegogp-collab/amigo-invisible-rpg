@@ -303,16 +303,9 @@ function finishBattle(won) {
       startEncounter();
     });
   } else {
-    battleLog(
-      "🏆 ¡Quico, Avionatin y Abel han sido derrotados! Un cofre mágico aparece...",
-    );
-    battleButton("🎁 Abrir cofre", () => {
-      battleLog(
-        "✨ ¡Has completado la aventura! El amigo invisible se revelará aquí cuando conectemos el sorteo privado.",
-      );
-      $("battleActions").replaceChildren();
-      battleButton("🍺 Volver a la taberna", leaveDungeon);
-    });
+    battleLog("🏆 ¡MISIÓN COMPLETADA! ¡Has completado la aventura! Contra todo pronóstico, habéis derrotado a Quico y sus secuaces. Entre los restos del combate aparece un misterioso cofre...");
+    battleButton("🎁 Abrir cofre", () => FinalScene.show(true));
+    battleButton("🍺 Volver a la taberna", leaveDungeon);
   }
 }
 function leaveDungeon() {
