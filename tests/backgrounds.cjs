@@ -24,8 +24,8 @@ for(const mobile of [false,true]){
 const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1100,height:850},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});const page=await context.newPage(),errors=[],bad=[],requests=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)bad.push(r.url())});page.on('request',r=>requests.push(r.url()));
 await page.goto('http://127.0.0.1:'+server.address().port+'/amigo-invisible-rpg/');await page.evaluate(()=>enemyArtReady);
-assert.equal(await page.title(),'La Taberna del Amigo Invisible v1.1');
-for(const f of ['personajes','recursos','combate'])assert.equal(await page.locator('script[src^="js/'+f+'.js"]').getAttribute('src'),'js/'+f+'.js?v='+(f==='combate'?'1.1':'1.0.2'));
+assert.equal(await page.title(),'La Taberna del Amigo Invisible v1.2');
+for(const f of ['personajes','recursos','combate'])assert.equal(await page.locator('script[src^="js/'+f+'.js"]').getAttribute('src'),'js/'+f+'.js?v='+(f==='combate'?'1.2':'1.0.2'));
 await page.selectOption('#pick',String(await page.evaluate(()=>data.findIndex(p=>p[0]==='Óscar'))));await page.locator('#start').click();await page.evaluate(()=>talk(hero));assert((await page.locator('#npcDetail').innerText()).includes(label));await page.getByRole('button',{name:'Cerrar',exact:true}).click();
 await page.evaluate(()=>{party=[6,2];update();startBattle()});assert((await page.getByRole('button',{name:/^✨/}).innerText()).includes(label));
 await page.getByRole('button',{name:/^✨/}).click();assert((await page.locator('#battleLog').innerText()).includes(label));

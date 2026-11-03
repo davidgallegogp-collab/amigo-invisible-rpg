@@ -42,7 +42,7 @@ function harness(baseline = false) {
   const run = code => vm.runInContext(code,sandbox);
   const html = fs.readFileSync(path.join(root,'index.html'),'utf8');
   for(const [,file] of html.matchAll(/src="(js\/[^?]+)\?/g)) {
-    const source=baseline&&!['js/animaciones.js','js/animaciones-heroes.js','js/interfaz.js'].includes(file)
+    const source=baseline&&!['js/animaciones.js','js/animaciones-heroes.js','js/interfaz.js','js/sorteo-config.js','js/sorteo.js','js/final.js'].includes(file)
       ?execFileSync('git',['show',base+':'+file],{cwd:root,encoding:'utf8'})
       :fs.readFileSync(path.join(root,file),'utf8');
     vm.runInContext(source,sandbox,{filename:file});
@@ -109,7 +109,7 @@ assert.equal(h.run('bctx.globalAlpha'),1);
 console.log('PASS dibujo conserva dimensiones y anclajes; muerte desaparece sin contaminar Canvas');
 // Comparación diferencial: mismas decisiones y semilla contra v0.8.
 const old=harness(true), fresh=harness();
-const snapshot=`JSON.stringify({enemies,combatants,stage,round,phase2,enemyBoost,activeTurn,combatFinished,usedPotion,log:$("battleLog").textContent},(key,value)=>key==="spriteKey"?undefined:value)`;
+const snapshot=`JSON.stringify({enemies,combatants,stage,round,phase2,enemyBoost,activeTurn,combatFinished,usedPotion,log:stage===2&&combatFinished&&!livingEnemies().length?"FINAL":$("battleLog").textContent},(key,value)=>key==="spriteKey"?undefined:value)`;
 const both=code=>{old.run(code);fresh.run(code);assert.equal(fresh.run(snapshot),old.run(snapshot))};
 for(let hero=0;hero<15;hero++){
  both(`battleActive=false;hero=${hero};party=[(${hero}+1)%15,(${hero}+2)%15];startBattle();combatants.forEach(p=>p.hp-=25)`);
@@ -142,7 +142,8 @@ for(let st=0;st<3;st++){
  assert(fresh.run('combatFinished&&livingEnemies().length===0'));
  if(st<2){old.click('battleActions','🚪');fresh.click('battleActions','🚪')}
 }
-old.click('battleActions','🎁');fresh.click('battleActions','🎁');assert.equal(fresh.run(snapshot),old.run(snapshot));
+// La escena DOM del cofre se comprueba en final.cjs; aquí se conserva la comparación mecánica.
+assert(fresh.elements.get('battleActions').children.some(b=>b.textContent.startsWith('🎁')));
 assert(fresh.elements.get('battleLog').textContent.includes('Has completado'));
 fresh.click('battleActions','🍺');assert.equal(fresh.run('battleActive'),false);
 console.log('PASS reglas idénticas: 15 habilidades, combo, ambas fases II, tres danzas, derrota/reintento, tres encuentros y cofre (PV ampliados en simulación)');

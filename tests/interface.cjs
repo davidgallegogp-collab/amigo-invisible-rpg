@@ -3,7 +3,9 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
 const root=path.resolve(__dirname,'..'),base='7dcbec9c85f783f54cb322d5a57968a71019a0cb';
 const old=f=>execFileSync('git',['show',base+':'+f],{cwd:root,maxBuffer:20e6});
 for(const f of ['js/personajes.js','js/estado.js','js/enemigos.js','js/animaciones.js','js/animaciones-heroes.js','js/recursos.js',...fs.readdirSync(path.join(root,'assets'),{recursive:true,withFileTypes:true}).filter(e=>e.isFile()).map(e=>path.relative(root,path.join(e.parentPath,e.name)))])assert(fs.readFileSync(path.join(root,f)).equals(old(f)),f);
-const combat=fs.readFileSync(path.join(root,'js/combate.js'),'utf8');assert.equal(combat.slice(combat.indexOf('function nextLiving')),old('js/combate.js').toString().slice(old('js/combate.js').toString().indexOf('function nextLiving')),'reglas, progresión y cofre intactos');
+const combat=fs.readFileSync(path.join(root,'js/combate.js'),'utf8');
+const withoutEnding=s=>s.replace(/    battleLog\(\n?\s*"🏆[\s\S]*?(?=\n  }\n}\nfunction leaveDungeon)/,'    /* desenlace v1.2 */');
+assert.equal(withoutEnding(combat.slice(combat.indexOf('function nextLiving'))),withoutEnding(old('js/combate.js').toString().slice(old('js/combate.js').toString().indexOf('function nextLiving'))),'reglas y progresión intactas salvo desenlace');
 const server=http.createServer((req,res)=>{let u=new URL(req.url,'http://localhost').pathname.replace(/^\/amigo-invisible-rpg/,'');if(u==='/')u='/index.html';const f=path.join(root,u);if(!f.startsWith(root+path.sep)||!fs.existsSync(f)){res.writeHead(404);return res.end()}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f))});
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
 try {browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
@@ -31,6 +33,7 @@ for(const mobile of [false,true]){
   const p=state.p,action=p.cls==='Clérigo'&&p.mp>=8&&state.needsHeal?'✨':p.hp<p.maxhp/2&&!state.usedPotion?'🧪':p.cls!=='Clérigo'&&p.mp>=8?'✨':'⚔';
   await press(page.locator('#battleActions').getByRole('button',{name:new RegExp('^'+action)}));const targets=page.getByRole('button',{name:/^🎯/});if(await targets.count())await press(targets.last());await verify();
  }
+ await page.keyboard.press('Escape');
  assert(count<200);assert((await page.locator('#battleLog').innerText()).includes('Has completado'));
  // Estados dirigidos: defensa, curación, fase II, derrota y reintento.
  await page.evaluate(()=>{battleActive=false;startBattle();hitHero(combatants[0],10);activeTurn=1;showTurn(true)});await verify();await press(page.getByRole('button',{name:/^✨/}));await verify();

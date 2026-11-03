@@ -71,7 +71,7 @@ async function clickAttack(page){
    }
    assert.deepEqual((await page.evaluate(()=>[...window.seen])).sort(),['mirucha.png','nacho.png','arturo.png','quico.png','avionatin.png','abel.png'].sort());
    await page.getByRole('button',{name:'🎁 Abrir cofre'}).click();assert((await page.locator('#battleLog').innerText()).includes('Has completado'));
-   await page.getByRole('button',{name:'🍺 Volver a la taberna'}).click();assert.equal(await page.evaluate(()=>battleActive),false);
+   await page.locator('#destinyBack').click();assert.equal(await page.evaluate(()=>battleActive),false);
    assert.deepEqual(bad,[]);
    console.log('PASS',mobile?'móvil emulado':'PC',prefix,'fondo nuevo verificado, controles, Pere, reclutamiento, seis sprites, tres victorias, cofre');
   }
